@@ -157,6 +157,10 @@
   tags:
     - microk8s
   tasks:
+    # ----------------------------------------------------
+    # Install microk8s
+    # ----------------------------------------------------
+
     - name: Install microk8s
       become: yes
       snap:
@@ -208,9 +212,10 @@
     - name: Restart microk8s
       shell: "microk8s.stop && microk8s.start"
       when: ip_included.stdout_lines[0]|int == 0
-    # ----------------------------------------------------------
-    # END WORKAROUND
-    # ----------------------------------------------------------
+
+    # ----------------------------------------------------
+    # Download Kubeconfig
+    # ----------------------------------------------------
 
     - name: Write config to file
       shell: "microk8s.config > /root/microk8s-kube.conf"
@@ -228,11 +233,44 @@
         flat: yes
         fail_on_missing: yes
 
+    # ----------------------------------------------------
+    # DNS
+    # ----------------------------------------------------
+
     - name: MicroK8S - Enable DNS
       shell: "microk8s enable dns"
 
+    # ----------------------------------------------------
+    # Dashboard
+    # ----------------------------------------------------
+
     - name: MicroK8S - Enable Dashboard
       shell: "microk8s enable dashboard"
-#TODO ----------------------------------------------------------
-#    - name: MicroK8S - Enable MetalLB
-#      shell: "microk8s enable metallb:141.72.191.248-141.72.191.249"
+
+    # ----------------------------------------------------
+    # MetalLB
+    # ----------------------------------------------------
+
+    - name: MetalLB Namespace
+      shell: "microk8s.kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml"
+
+    - name: MetalLB
+      shell: "microk8s.kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml"
+
+    - name: MetalLB Secret
+      shell: 'microk8s.kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"'
+
+    - name: Create temporary dir for MetalLB config map
+      tempfile:
+        state: file
+        prefix: terraform
+        suffix: .yaml
+      register: metallb_temp_config
+
+    - name: Save inventory to file
+      template:
+        src: files/metallb-configmap.yaml.j2
+        dest: "{{metallb_temp_config.path}}/metallb-configmap.yaml"
+
+    - name: MetalLB Configmap
+      shell: "microk8s.kubectl apply -f {{metallb_temp_config.path}}/metallb-configmap.yaml"
