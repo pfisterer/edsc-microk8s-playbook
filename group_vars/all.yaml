@@ -1,0 +1,25 @@
+nodes_count: "{{ lookup('env', 'NODE_COUNT') | default(1, true) }}"
+
+nodes_name: "{{ lookup('env','NODE_NAME') | default('studentnode', true) }}-"
+nodes_image: "{{ lookup('env','IMAGE') | default('a0a1c616-f4f3-429d-8de9-8e74b5df805c', true) }}"
+nodes_flavor_name: "{{ lookup('env','NODE_FLAVOR') | default('m1.large', true) }}"
+
+security_group: "{{ lookup('env','NODE_SEC_GROUP') | default('default', true) }}"
+key_name: "{{ lookup('env','KEY') | default('Dennis Mac 2017', true)  }}"
+
+external_network_name: "{{ lookup('env','EXT_NET') | default('ext-net-201', true) }}"
+floating_ip_pools: "{{ lookup('env', 'FLOATING_IP_POOL') | default('ext-net-201', true) }}"
+
+router_name: "{{nodes_name}}-router"
+subnet_name: "{{nodes_name}}-subnet"
+network_name: "{{nodes_name}}-network"
+
+dns_server_1: "{{ lookup('env','DNS_SERVER_1') | default('1.1.1.1', true) }}"
+dns_server_2: "{{ lookup('env','DNS_SERVER_2') | default('8.8.8.8', true) }}"
+
+ssh_known_hosts_command: "ssh-keyscan -T 10"
+ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+
+generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default('generated-server-list.txt', true) }}"
+
+microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.18/stable', true) }}"
