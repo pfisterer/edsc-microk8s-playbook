@@ -1,4 +1,3 @@
----
 - hosts: localhost
   tags:
     - openstack
@@ -187,6 +186,7 @@
     # Workaround to be able to connect to microk8s remotely
     # https://github.com/ubuntu/microk8s/issues/421
     # ----------------------------------------------------------
+
     - name: Check IP is already included in the template
       shell: "cat /var/snap/microk8s/current/certs/csr.conf.template | grep '= {{ansible_host}}' | wc -l"
       register: ip_included
@@ -251,26 +251,5 @@
     # MetalLB
     # ----------------------------------------------------
 
-    - name: MetalLB Namespace
-      shell: "microk8s.kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml"
-
-    - name: MetalLB
-      shell: "microk8s.kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml"
-
-    - name: MetalLB Secret
-      shell: 'microk8s.kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"'
-
-    - name: Create temporary dir for MetalLB config map
-      tempfile:
-        state: file
-        prefix: terraform
-        suffix: .yaml
-      register: metallb_temp_config
-
-    - name: Save inventory to file
-      template:
-        src: files/metallb-configmap.yaml.j2
-        dest: "{{metallb_temp_config.path}}/metallb-configmap.yaml"
-
-    - name: MetalLB Configmap
-      shell: "microk8s.kubectl apply -f {{metallb_temp_config.path}}/metallb-configmap.yaml"
+    - name: MicroK8S - Enable MetalLB
+      shell: "microk8s enable metallb:{{ansible_host}}-{{ansible_host}}"
