@@ -110,3 +110,23 @@ Run just microk8s installation on existing hosts:
 ```bash
 ansible-playbook -i generated-server-list.txt --tags microk8s deploy.yaml
 ```
+
+Add a UDP/TCP service using the NGINX ingress controller (cf. [Ingress nginx for TCP and UDP services](https://minikube.sigs.k8s.io/docs/tutorials/nginx_tcp_udp_ingress/))
+
+```yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: ingress-nginx-controller
+        ports:
+         - containerPort: 52
+           hostPort: 52
+```
+
+Run 
+```bash
+kubectl patch configmap nginx-udp-configmap -n kube-system --patch '{"data":{"52":"default/my-service:52"}}'
+
+kubectl patch deployment ingress-nginx-controller --patch "$(cat ingress-nginx-controller-patch.yaml)" -n kube-system
+```

@@ -225,7 +225,6 @@
         metallb_ip_end: "{{hostvars[inventory_hostname].ansible_ssh_host}}"
 
     - name: MicroK8S - Enable MetalLB
-      #shell: "microk8s enable metallb:{{ansible_host}}-{{ansible_host}}"
       shell: "microk8s enable metallb:{{metallb_ip_begin}}-{{metallb_ip_end}}"
 
 - hosts: localhost
@@ -247,8 +246,20 @@
       register: nginx_status
       when: enable_nginx == True
 
+    - name: Apply UDP configmap
+      shell: kubectl apply -f files/nginx-udp-configmap.yaml
+      when:
+        - nginx_status.rc != 0
+        - enable_nginx == True
+
+    - name: Apply TCPP configmap
+      shell: kubectl apply -f files/nginx-tcp-configmap.yaml
+      when:
+        - nginx_status.rc != 0
+        - enable_nginx == True
+
     - name: Deploy NGINX Ingress
-      shell: "helm install --namespace kube-system --set 'controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret' --set-string 'controller.config.proxy-body-size=0' --set 'controller.publishService.enabled=true' nginx-ingress 'stable/nginx-ingress'"
+      shell: "helm install --namespace kube-system --set 'controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret' --set 'controller.extraArgs.udp-services-configmap=kube-system/nginx-udp-configmap' --set 'controller.extraArgs.tcp-services-configmap=kube-system/nginx-tcp-configmap' --set-string 'controller.config.proxy-body-size=0' --set 'controller.publishService.enabled=true' nginx-ingress 'stable/nginx-ingress'"
       when:
         - nginx_status.rc != 0
         - enable_nginx == True

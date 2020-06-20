@@ -23,3 +23,4 @@ ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
 generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default('generated-server-list.txt', true) }}"
 
 microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.18/stable', true) }}"
+enable_nginx: "{{ lookup('env','MICROK8S_ENABLE_NGINX') | default(true, true) }}"
