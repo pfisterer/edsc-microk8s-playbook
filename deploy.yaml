@@ -2,36 +2,6 @@
   tags:
     - openstack
   tasks:
-    - name: create network
-      os_network:
-        name: "{{ network_name }}"
-
-    - name: create subnet
-      os_subnet:
-        network_name: "{{ network_name }}"
-        name: "{{ subnet_name }}"
-        cidr: 192.168.0.0/24
-        dns_nameservers:
-          - "{{ dns_server_1 }}"
-          - "{{ dns_server_2 }}"
-      register: subnet
-
-    - name: create router
-      os_router:
-        name: "{{ router_name }}"
-        network: "{{ external_network_name }}"
-        interfaces:
-          - "{{ subnet_name }}"
-          # Enable if you experience problems (re-creating) the router
-          # enable_snat: yes # cf. https://github.com/ansible/ansible/issues/29903
-      register: router
-
-    - name: Set variables
-      set_fact:
-        state: present
-        routeruuid: "{{ router.id }}"
-        subnetuuid: "{{ subnet.id }}"
-
     - name: Create OpenStack instance
       os_server:
         security_groups: "{{security_group}}"
@@ -41,8 +11,7 @@
         flavor_ram: "{{ nodes_flavor_ram if not nodes_flavor_name else omit }}"
         flavor: "{{ nodes_flavor_name if nodes_flavor_name else omit }}"
         nics:
-          - net-name: "{{ network_name }}"
-        floating_ip_pools: "{{ floating_ip_pools }}"
+          - net-name: "{{ external_network_name }}"
         userdata: |
           #cloud-config
           package_upgrade: true
@@ -51,32 +20,21 @@
           packages:
             - python
             - python-simplejson
-      when: state == "present"
       register: "instances"
       with_sequence: count={{ nodes_count }}
-
-    - name: Remove any existing public keys in local '{{ ssh_known_hosts_file }}'
-      known_hosts:
-        name: "{{ item.openstack.accessIPv4 }}"
-        state: "absent"
-        path: "{{ ssh_known_hosts_file }}"
-      with_items: "{{ instances.results }}"
 
     - name: Update inventory
       add_host:
         name: "{{ item.server.name }}"
         ansible_ssh_host: "{{ item.openstack.accessIPv4 }}"
         ansible_ssh_user: ubuntu
-        private_ip_v4: "{{ item.openstack.private_v4 }}"
         groupname: nodes
       with_items: "{{ instances.results }}"
-      when: state == "present"
 
     - name: Save inventory to file
       template:
         src: files/inventory-out-template.j2
         dest: generated-server-list.txt
-      when: state == "present"
 
 - hosts: all
   gather_facts: False
@@ -117,8 +75,6 @@
       until: ssh_known_host_results.stdout != ''
       retries: 75
       ignore_errors: yes
-
-    - debug: msg="{{ groups.nodes }}"
 
     - name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
       known_hosts:
@@ -265,8 +221,8 @@
     # ----------------------------------------------------
 
     - set_fact:
-        metallb_ip_begin: "{{hostvars[inventory_hostname].private_ip_v4}}"
-        metallb_ip_end: "{{hostvars[inventory_hostname].private_ip_v4}}"
+        metallb_ip_begin: "{{hostvars[inventory_hostname].ansible_ssh_host}}"
+        metallb_ip_end: "{{hostvars[inventory_hostname].ansible_ssh_host}}"
 
     - name: MicroK8S - Enable MetalLB
       #shell: "microk8s enable metallb:{{ansible_host}}-{{ansible_host}}"
@@ -289,7 +245,10 @@
       changed_when: False
       no_log: True
       register: nginx_status
+      when: enable_nginx == True
 
     - name: Deploy NGINX Ingress
       shell: "helm install --namespace kube-system --set 'controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret' --set-string 'controller.config.proxy-body-size=0' --set 'controller.publishService.enabled=true' nginx-ingress 'stable/nginx-ingress'"
-      when: nginx_status.rc != 0
+      when:
+        - nginx_status.rc != 0
+        - enable_nginx == True
