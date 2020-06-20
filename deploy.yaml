@@ -67,6 +67,7 @@
         name: "{{ item.server.name }}"
         ansible_ssh_host: "{{ item.openstack.accessIPv4 }}"
         ansible_ssh_user: ubuntu
+        private_ip_v4: "{{ item.openstack.private_v4 }}"
         groupname: nodes
       with_items: "{{ instances.results }}"
       when: state == "present"
@@ -156,6 +157,9 @@
   tags:
     - microk8s
   tasks:
+    - debug:
+        var: ansible_facts
+
     # ----------------------------------------------------
     # Install microk8s
     # ----------------------------------------------------
@@ -175,6 +179,7 @@
 
     - name: Wait for microk8s to be ready
       shell: "microk8s status --wait-ready"
+      changed_when: False
 
     - name: Set File Descriptor Limits for Microk8s
       lineinfile:
@@ -234,11 +239,19 @@
         fail_on_missing: yes
 
     # ----------------------------------------------------
+    # Get microk8s status
+    # ----------------------------------------------------
+    - name: Get microk8s status
+      shell: "microk8s status"
+      register: microk8s_status
+
+    # ----------------------------------------------------
     # DNS
     # ----------------------------------------------------
 
     - name: MicroK8S - Enable DNS
       shell: "microk8s enable dns"
+      when: '"dns" not in microk8s_status.stdout_lines'
 
     # ----------------------------------------------------
     # Dashboard
@@ -251,5 +264,32 @@
     # MetalLB
     # ----------------------------------------------------
 
+    - set_fact:
+        metallb_ip_begin: "{{hostvars[inventory_hostname].private_ip_v4}}"
+        metallb_ip_end: "{{hostvars[inventory_hostname].private_ip_v4}}"
+
     - name: MicroK8S - Enable MetalLB
-      shell: "microk8s enable metallb:{{ansible_host}}-{{ansible_host}}"
+      #shell: "microk8s enable metallb:{{ansible_host}}-{{ansible_host}}"
+      shell: "microk8s enable metallb:{{metallb_ip_begin}}-{{metallb_ip_end}}"
+
+- hosts: localhost
+  connection: local
+  tags:
+    - nginx
+  environment:
+    KUBECONFIG: "{{playbook_dir}}/generated-kube.conf"
+
+  tasks:
+    # ----------------------------------------------------
+    # Nginx Ingress
+    # ----------------------------------------------------
+    - name: Check if nginx-ingress is already installed
+      shell: helm status -n kube-system nginx-ingress
+      ignore_errors: True
+      changed_when: False
+      no_log: True
+      register: nginx_status
+
+    - name: Deploy NGINX Ingress
+      shell: "helm install --namespace kube-system --set 'controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret' --set-string 'controller.config.proxy-body-size=0' --set 'controller.publishService.enabled=true' nginx-ingress 'stable/nginx-ingress'"
+      when: nginx_status.rc != 0

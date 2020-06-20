@@ -2,6 +2,10 @@
 
 Creates a number of virtual machines in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed.
 
+The motivation for creating this project was that in some OpenStack installations, no recent version of LBaaS v2 is available. This limits the use of Kubernetes Services of type `LoadBalancer`. Hence, this project uses [MetalLB](https://metallb.universe.tf/) to realize load balancing.
+
+However, as OpenStack only allows [a single floating IP to be assigned to an instance](https://ask.openstack.org/en/question/11901/how-to-configure-multiple-floating-ip-for-one-instance/), this project re-uses the hosts IP. 
+
 ## Usage (local installation of Ansible)
 
 1. Set the required environment variables (see table below) and run `ansible-playbook`
