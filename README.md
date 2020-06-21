@@ -120,13 +120,13 @@ spec:
       containers:
       - name: ingress-nginx-controller
         ports:
-         - containerPort: 52
-           hostPort: 52
+         - containerPort: 53
+           hostPort: 53
 ```
 
 Run 
 ```bash
-kubectl patch configmap nginx-udp-configmap -n kube-system --patch '{"data":{"52":"default/my-service:52"}}'
+kubectl -n kube-system patch configmap nginx-udp-configmap  --patch '{"data":{"53":"default/my-service:53"}}'
 
-kubectl patch deployment ingress-nginx-controller --patch "$(cat ingress-nginx-controller-patch.yaml)" -n kube-system
+kubectl -n kube-system patch deployment nginx-ingress-controller --patch "$(cat ingress-nginx-controller-patch.yaml)"
 ```
