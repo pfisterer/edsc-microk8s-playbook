@@ -1,0 +1,12 @@
+controller:
+  extraArgs:
+    "default-ssl-certificate": "cert-manager/ingress-certificate-secret"
+    "udp-services-configmap": "kube-system/nginx-udp-configmap"
+    "tcp-services-configmap": "kube-system/nginx-tcp-configmap"
+  config:
+    "proxy-body-size": "0"
+  publishService:
+    enabled: true
+  service:
+    annotations:
+      metallb.universe.tf/allow-shared-ip: "edsc-tools"

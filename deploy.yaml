@@ -252,14 +252,25 @@
         - nginx_status.rc != 0
         - enable_nginx == True
 
-    - name: Apply TCPP configmap
+    - name: Apply TCP configmap
       shell: kubectl apply -f files/nginx-tcp-configmap.yaml
       when:
         - nginx_status.rc != 0
         - enable_nginx == True
 
+    - name: Create temporary file with helm values
+      tempfile:
+        state: file
+        suffix: nginx-ingress-config.yaml
+      register: nginx_ingress_temp_config
+
+    - name: Render template content to temporary file
+      template:
+        src: files/nginx-ingress-values.yaml
+        dest: "{{ nginx_ingress_temp_config.path }}"
+
     - name: Deploy NGINX Ingress
-      shell: "helm install --namespace kube-system --set 'controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret' --set 'controller.extraArgs.udp-services-configmap=kube-system/nginx-udp-configmap' --set 'controller.extraArgs.tcp-services-configmap=kube-system/nginx-tcp-configmap' --set-string 'controller.config.proxy-body-size=0' --set 'controller.publishService.enabled=true' nginx-ingress 'stable/nginx-ingress'"
+      shell: "helm install --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
       when:
         - nginx_status.rc != 0
         - enable_nginx == True
