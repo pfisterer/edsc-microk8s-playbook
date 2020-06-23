@@ -1,276 +1,83 @@
-- hosts: localhost
-  tags:
-    - openstack
-  tasks:
-    - name: Create OpenStack instance
-      os_server:
-        security_groups: "{{security_group}}"
-        name: "{{ nodes_name }}{{ item }}"
-        image: "{{ nodes_image }}"
-        key_name: "{{ key_name }}"
-        flavor_ram: "{{ nodes_flavor_ram if not nodes_flavor_name else omit }}"
-        flavor: "{{ nodes_flavor_name if nodes_flavor_name else omit }}"
-        nics:
-          - net-name: "{{ external_network_name }}"
-        userdata: |
-          #cloud-config
-          package_upgrade: true
-          hostname: "{{ nodes_name }}{{ item }}"
-          manage_etc_hosts: false
-          packages:
-            - python
-            - python-simplejson
-      register: "instances"
-      with_sequence: count={{ nodes_count }}
+---
+# ----------------------------------------------------
+# Create OpenStack resources cluster and wait for cloud init to finish
+# ----------------------------------------------------
+- name: Create OpenStack resources cluster
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - role: openstack
 
-    - name: Update inventory
-      add_host:
-        name: "{{ item.server.name }}"
-        ansible_ssh_host: "{{ item.openstack.accessIPv4 }}"
-        ansible_ssh_user: ubuntu
-        groupname: nodes
-      with_items: "{{ instances.results }}"
-
-    - name: Save inventory to file
-      template:
-        src: files/inventory-out-template.j2
-        dest: generated-server-list.txt
-
-- hosts: all
+- name: Wait for nodes to be ready
+  hosts: all
   gather_facts: False
   tags:
     - openstack
   tasks:
     - name: Wait during nodes boot
       wait_for:
-        host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+        host: "{{ansible_ssh_host}}"
         port: 22
         connect_timeout: 20
         timeout: 600
         search_regex: OpenSSH
       vars:
         ansible_connection: local
-      with_items: "{{ groups.nodes }}"
 
-- hosts: all
+# ----------------------------------------------------
+# Scan SSH keys
+# ----------------------------------------------------
+
+- name: SSH keys
+  hosts: localhost
+  connection: local
+  tags:
+    - openstack
+  roles:
+    - role: ssh-keys
+
+# ----------------------------------------------------
+# Wait for nodes to be ready
+# ----------------------------------------------------
+
+- name: Wait for nodes to be ready
+  hosts: all
   gather_facts: False
+  tags:
+    - openstack
   tasks:
     - name: Wait for cloud-init to finish
       raw: while ! test -f /var/lib/cloud/instance/boot-finished; do sleep 1; done
       retries: 5
       delay: 1
+      changed_when: False
       tags:
         - skip_ansible_lint
 
-- hosts: localhost
-  connection: local
-  tags:
-    - openstack
+# ----------------------------------------------------
+# Install microk8s
+# ----------------------------------------------------
 
-  tasks:
-    - name: For each host, scan for its ssh public key
-      shell: "ssh-keyscan -trsa {{ hostvars[item]['ansible_ssh_host'] }}"
-      with_items: "{{ groups.nodes }}"
-      register: ssh_known_host_results
-      until: ssh_known_host_results.stdout != ''
-      retries: 75
-      ignore_errors: yes
-
-    - name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
-      known_hosts:
-        name: "{{ hostvars[item.item]['ansible_ssh_host'] }}"
-        key: "{{ item.stdout }}"
-        state: "present"
-        path: "{{ ssh_known_hosts_file }}"
-      with_items: "{{ ssh_known_host_results.results }}"
-
-- hosts: all
+- name: Install microk8s
+  hosts: all
   user: ubuntu
   become: yes
   become_user: root
+  gather_facts: false
   tags:
     - base
-  tasks:
-    - name: Install packages
-      apt:
-        name: ["python3", "python3-pip", "snapd"]
-        state: present
-        update_cache: yes
+  roles:
+    - role: microk8s
 
-    - name: Disable Swap
-      command: swapoff -a
+# ----------------------------------------------------
+# Install addons
+# ----------------------------------------------------
 
-    - name: Set ip forwarding
-      sysctl:
-        name: net.ipv4.ip_forward
-        value: "1"
-        sysctl_set: yes
-
-- hosts: all
-  user: ubuntu
-  become: yes
-  become_user: root
-  tags:
-    - microk8s
-  tasks:
-    - debug:
-        var: ansible_facts
-
-    # ----------------------------------------------------
-    # Install microk8s
-    # ----------------------------------------------------
-
-    - name: Install microk8s
-      become: yes
-      snap:
-        name: microk8s
-        classic: yes
-        channel: "{{ microk8s_version }}"
-
-    - name: Add user 'ubuntu' to group microk8s
-      user:
-        name: ubuntu
-        group: microk8s
-        append: yes
-
-    - name: Wait for microk8s to be ready
-      shell: "microk8s status --wait-ready"
-      changed_when: False
-
-    - name: Set File Descriptor Limits for Microk8s
-      lineinfile:
-        dest: /var/snap/microk8s/current/args/containerd-env
-        line: "ulimit -n 65536"
-        state: present
-
-    # ----------------------------------------------------------
-    # Workaround to be able to connect to microk8s remotely
-    # https://github.com/ubuntu/microk8s/issues/421
-    # ----------------------------------------------------------
-
-    - name: Check IP is already included in the template
-      shell: "cat /var/snap/microk8s/current/certs/csr.conf.template | grep '= {{ansible_host}}' | wc -l"
-      register: ip_included
-
-    - name: Get highest entry in the list of IPs (conf)
-      shell: "cat /var/snap/microk8s/current/certs/csr.conf | sed -nr 's/IP\\.([0-9]+).*/\\1/p' | sort | tail -n 1"
-      register: csr_output
-      when: ip_included.stdout_lines[0]|int == 0
-
-    - name: Get highest entry in the list of IPs (template)
-      shell: "cat /var/snap/microk8s/current/certs/csr.conf.template | sed -nr 's/IP\\.([0-9]+).*/\\1/p' | sort | tail -n 1"
-      register: csr_template_output
-      when: ip_included.stdout_lines[0]|int == 0
-
-    - name: Add IP entry
-      lineinfile:
-        path: /var/snap/microk8s/current/certs/csr.conf.template
-        insertafter: "^IP.{{csr_template_output.stdout_lines[0]}} = .*"
-        line: "IP.{{csr_output.stdout_lines[0]|int + 1}} = {{ansible_host}}"
-      register: csr_mod_result
-      when: ip_included.stdout_lines[0]|int == 0
-
-    - name: Restart microk8s
-      shell: "microk8s.stop && microk8s.start"
-      when: ip_included.stdout_lines[0]|int == 0
-
-    # ----------------------------------------------------
-    # Download Kubeconfig
-    # ----------------------------------------------------
-
-    - name: Write config to file
-      shell: "microk8s.config > /root/microk8s-kube.conf"
-
-    - name: Replace IP in config
-      replace:
-        path: /root/microk8s-kube.conf
-        regexp: 'server: https://[0-9\\.]+:16443'
-        replace: "server: https://{{ansible_host}}:16443"
-
-    - name: Download kubeconf
-      fetch:
-        src: /root/microk8s-kube.conf
-        dest: "generated-kube.conf"
-        flat: yes
-        fail_on_missing: yes
-
-    # ----------------------------------------------------
-    # Get microk8s status
-    # ----------------------------------------------------
-    - name: Get microk8s status
-      shell: "microk8s status"
-      register: microk8s_status
-
-    # ----------------------------------------------------
-    # DNS
-    # ----------------------------------------------------
-
-    - name: MicroK8S - Enable DNS
-      shell: "microk8s enable dns"
-      when: '"dns" not in microk8s_status.stdout_lines'
-
-    # ----------------------------------------------------
-    # Dashboard
-    # ----------------------------------------------------
-
-    - name: MicroK8S - Enable Dashboard
-      shell: "microk8s enable dashboard"
-
-    # ----------------------------------------------------
-    # MetalLB
-    # ----------------------------------------------------
-
-    - set_fact:
-        metallb_ip_begin: "{{hostvars[inventory_hostname].ansible_ssh_host}}"
-        metallb_ip_end: "{{hostvars[inventory_hostname].ansible_ssh_host}}"
-
-    - name: MicroK8S - Enable MetalLB
-      shell: "microk8s enable metallb:{{metallb_ip_begin}}-{{metallb_ip_end}}"
-
-- hosts: localhost
+- name: Install addons
+  hosts: localhost
   connection: local
-  tags:
-    - nginx
+  gather_facts: false
   environment:
-    KUBECONFIG: "{{playbook_dir}}/generated-kube.conf"
-
-  tasks:
-    # ----------------------------------------------------
-    # Nginx Ingress
-    # ----------------------------------------------------
-    - name: Check if nginx-ingress is already installed
-      shell: helm status -n kube-system nginx-ingress
-      ignore_errors: True
-      changed_when: False
-      no_log: True
-      register: nginx_status
-      when: enable_nginx == True
-
-    - name: Apply UDP configmap
-      shell: kubectl apply -f files/nginx-udp-configmap.yaml
-      when:
-        - nginx_status.rc != 0
-        - enable_nginx == True
-
-    - name: Apply TCP configmap
-      shell: kubectl apply -f files/nginx-tcp-configmap.yaml
-      when:
-        - nginx_status.rc != 0
-        - enable_nginx == True
-
-    - name: Create temporary file with helm values
-      tempfile:
-        state: file
-        suffix: nginx-ingress-config.yaml
-      register: nginx_ingress_temp_config
-
-    - name: Render template content to temporary file
-      template:
-        src: files/nginx-ingress-values.yaml
-        dest: "{{ nginx_ingress_temp_config.path }}"
-
-    - name: Deploy NGINX Ingress
-      shell: "helm install --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
-      when:
-        - nginx_status.rc != 0
-        - enable_nginx == True
+    KUBECONFIG: "{{generated_kubeconf_file}}"
+  roles:
+    - role: microk8s-addons

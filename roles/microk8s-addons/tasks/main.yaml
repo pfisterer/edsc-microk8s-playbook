@@ -1,0 +1,46 @@
+---
+# ----------------------------------------------------
+# ----------------------------------------------------
+# Nginx Ingress
+- name: Check if nginx-ingress is already installed
+  shell: helm status -n kube-system nginx-ingress
+  ignore_errors: True
+  changed_when: False
+  no_log: True
+  register: nginx_status
+  when: enable_nginx == True
+
+- name: Apply UDP configmap
+  shell: kubectl apply -f files/nginx-udp-configmap.yaml
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True
+
+- name: Apply TCP configmap
+  shell: kubectl apply -f files/nginx-tcp-configmap.yaml
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True
+
+- name: Create temporary file with helm values
+  tempfile:
+    state: file
+    suffix: nginx-ingress-config.yaml
+  register: nginx_ingress_temp_config
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True
+
+- name: Render template content to temporary file
+  template:
+    src: files/nginx-ingress-values.yaml
+    dest: "{{ nginx_ingress_temp_config.path }}"
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True
+
+- name: Deploy NGINX Ingress
+  shell: "helm install --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True

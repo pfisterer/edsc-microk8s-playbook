@@ -1,6 +1,6 @@
-# Ansible Playbook to Create VMs in OpenStack with MicroK8S
+# Ansible Playbook to Create a VM in OpenStack with MicroK8S
 
-Creates a number of virtual machines in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed.
+Creates a virtual machine in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed.
 
 The motivation for creating this project was that in some OpenStack installations, no recent version of LBaaS v2 is available. This limits the use of Kubernetes Services of type `LoadBalancer`. Hence, this project uses [MetalLB](https://metallb.universe.tf/) to realize load balancing.
 
@@ -11,7 +11,7 @@ However, as OpenStack only allows [a single floating IP to be assigned to an ins
 1. Set the required environment variables (see table below) and run `ansible-playbook`
    - Set environent variables (e.g., using multiple `export NAME="VALUE"` statements on Linux)
 1. Run `ansible-playbook deploy.yaml`
-1. Open `generated-server-list.txt` for the IP adresses of the created machines
+1. Open `generated-{{ name }}-server-list.txt` for the IP adresses of the created machines
 1. Set `KUBECONFIG` to `$PWD/generated-kube.conf` and verify that `kubectl get nodes -o wide` works.
 
 Example
@@ -25,7 +25,6 @@ export OS_PROJECT_NAME="my-project"
 
 export ANSIBLE_HOST_KEY_CHECKING=False 
 
-export NODE_COUNT=1
 export NODE_PASSWORD="bla"
 export IMAGE="Ubuntu Server 20.04 64bit"
 export NODE_FLAVOR="m1.medium"
@@ -66,21 +65,21 @@ docker run --rm -ti \
 
 Specific to this project:
 
-| Name                  | Required | Description                                       | Example                                    |
-| --------------------- | -------- | ------------------------------------------------- | ------------------------------------------ |
-| NODE_COUNT            |          | Number of nodes to creates                        | `1`                                        |
-| NODE_PASSWORD         | x        | Password to set for user `ubuntu`                 | `blablubb`                                 |
-| NODE_NAME             |          | Prefix for hostnames                              | `demo-lecture`                             |
-| IMAGE                 | x        | Name of the OS image to use                       | `"Ubuntu Server 18.04 64bit (29.05.2018)"` |
-| NODE_FLAVOR           | x        | Name of the machine flavor to use                 | `m1.medium`                                |
-| NODE_SEC_GROUP        | x        | Security group to use                             | `default`                                  |
-| KEY                   | x        | Name of the SSH key to use                        | `my-laptop-ssh-key`                        |
-| EXT_NET               | x        | Name of the external network                      | `ext-network`                              |
-| FLOATING_IP_POOL      | x        | Name of the floating IP pool                      | `ext-network`                              |
-| DNS_SERVER_1          |          | DNS server #1 (defaults to 8.8.8.8)               | `8.8.8.8`                                  |
-| DNS_SERVER_1          |          | DNS server #2 (defaults to 8.8.8.8)               | `8.8.8.8`                                  |
-| GENERATED_SERVER_LIST |          | Path of the file to store the list of machine IPs | `/data/generated-server-list.txt`          |
-| MICROK8S_VERSION      |          | Version of microk8s                               | `1.18/stable`                              |
+| Name                  | Required | Description                                        | Example                                    |
+| --------------------- | -------- | -------------------------------------------------- | ------------------------------------------ |
+| NODE_PASSWORD         | x        | Password to set for user `ubuntu`                  | `blablubb`                                 |
+| NODE_NAME             |          | Prefix for hostnames                               | `demo-lecture`                             |
+| IMAGE                 | x        | Name of the OS image to use                        | `"Ubuntu Server 18.04 64bit (29.05.2018)"` |
+| NODE_FLAVOR           | x        | Name of the machine flavor to use                  | `m1.medium`                                |
+| NODE_SEC_GROUP        | x        | Security group to use                              | `default`                                  |
+| KEY                   | x        | Name of the SSH key to use                         | `my-laptop-ssh-key`                        |
+| EXT_NET               | x        | Name of the external network                       | `ext-network`                              |
+| FLOATING_IP_POOL      | x        | Name of the floating IP pool                       | `ext-network`                              |
+| DNS_SERVER_1          |          | DNS server #1 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
+| DNS_SERVER_1          |          | DNS server #2 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
+| GENERATED_SERVER_LIST |          | Path of the file to store virtual machine's IP     | `generated-{{NODE_NAME}}-server-list.txt`  |
+| GENERATED_KUBECONFIG  |          | Path of the file to store the generated kubeconfig | `generated-{{NODE_NAME}}-kube.comf`        |
+| MICROK8S_VERSION      |          | Version of microk8s                                | `1.18/stable`                              |
 
 For default values, see [group_vars/all.yaml](group_vars/all.yaml)
 

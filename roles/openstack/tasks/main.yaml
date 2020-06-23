@@ -1,0 +1,33 @@
+- name: Create OpenStack instance
+  os_server:
+    security_groups: "{{security_group}}"
+    name: "{{ nodes_name }}{{ item }}"
+    image: "{{ nodes_image }}"
+    key_name: "{{ key_name }}"
+    flavor_ram: "{{ nodes_flavor_ram if not nodes_flavor_name else omit }}"
+    flavor: "{{ nodes_flavor_name if nodes_flavor_name else omit }}"
+    nics:
+      - net-name: "{{ external_network_name }}"
+    userdata: |
+      #cloud-config
+      package_upgrade: true
+      hostname: "{{ nodes_name }}{{ item }}"
+      manage_etc_hosts: false
+      packages:
+        - python
+        - python-simplejson
+  register: "instances"
+  with_sequence: count={{ 1 }}
+
+- name: Update inventory
+  add_host:
+    name: "{{ item.server.name }}"
+    ansible_ssh_host: "{{ item.openstack.accessIPv4 }}"
+    ansible_ssh_user: ubuntu
+    groupname: nodes
+  with_items: "{{ instances.results }}"
+
+- name: Save inventory to file
+  template:
+    src: files/inventory-out-template.j2
+    dest: "{{ generated_server_list_file }}"
