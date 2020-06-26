@@ -6,6 +6,8 @@ The motivation for creating this project was that in some OpenStack installation
 
 However, as OpenStack only allows [a single floating IP to be assigned to an instance](https://ask.openstack.org/en/question/11901/how-to-configure-multiple-floating-ip-for-one-instance/), this project re-uses the hosts IP. 
 
+A Docker image is available at <https://hub.docker.com/r/farberg/edsc-microk8s-playbook>. 
+
 ## Usage (local installation of Ansible)
 
 1. Set the required environment variables (see table below) and run `ansible-playbook`
