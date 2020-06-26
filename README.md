@@ -69,7 +69,6 @@ Specific to this project:
 
 | Name                  | Required | Description                                        | Example                                    |
 | --------------------- | -------- | -------------------------------------------------- | ------------------------------------------ |
-| NODE_PASSWORD         | x        | Password to set for user `ubuntu`                  | `blablubb`                                 |
 | NODE_NAME             |          | Prefix for hostnames                               | `demo-lecture`                             |
 | IMAGE                 | x        | Name of the OS image to use                        | `"Ubuntu Server 18.04 64bit (29.05.2018)"` |
 | NODE_FLAVOR           | x        | Name of the machine flavor to use                  | `m1.medium`                                |
@@ -78,7 +77,7 @@ Specific to this project:
 | EXT_NET               | x        | Name of the external network                       | `ext-network`                              |
 | FLOATING_IP_POOL      | x        | Name of the floating IP pool                       | `ext-network`                              |
 | DNS_SERVER_1          |          | DNS server #1 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
-| DNS_SERVER_1          |          | DNS server #2 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
+| DNS_SERVER_2          |          | DNS server #2 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
 | GENERATED_SERVER_LIST |          | Path of the file to store virtual machine's IP     | `generated-{{NODE_NAME}}-server-list.txt`  |
 | GENERATED_KUBECONFIG  |          | Path of the file to store the generated kubeconfig | `generated-{{NODE_NAME}}-kube.comf`        |
 | MICROK8S_VERSION      |          | Version of microk8s                                | `1.18/stable`                              |
