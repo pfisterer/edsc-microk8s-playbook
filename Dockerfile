@@ -9,18 +9,23 @@ RUN apk add --update \
 	openssl-dev \
 	musl-dev \
 	linux-headers \
-	openssh
+	openssh \
+	openssh-keygen \
+	curl \
+	jq \
+	bash
 
 RUN pip3 install --upgrade --no-cache-dir pip setuptools openstacksdk
 
 RUN apk del gcc musl-dev linux-headers libffi-dev && rm -rf /var/cache/apk/*
 
-RUN mkdir /app
-WORKDIR /app
+ADD docker-entrypoint.sh /
 
-ADD . /app
+WORKDIR /app
+ADD . /app/
 
 VOLUME /root/.ssh/
 VOLUME /data/
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["ansible-playbook", "deploy.yaml"]

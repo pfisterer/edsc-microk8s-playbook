@@ -47,7 +47,7 @@ ansible-playbook deploy.yaml
    - Requires multiple `--env "NAME=VALUE"` parameters
    - Make sure to set `GENERATED_SERVER_LIST` to a file in `/data/` (e.g., `GENERATED_SERVER_LIST=/data/generated-server-list.txt`)
 1. Make your ssh keys available
-   - Requires mounting them as `/root/.ssh/` using `-v /your/absolute/path/to/.ssh/:/root/.ssh/`
+   - Requires mounting them as `/root/.ssh/` using `-v /your/absolute/path/to/.ssh/:/root/.ssh/:ro`
 1. Create a single command from the values above
 1. See `/your/absolute/path/to/some/dir/generated-server-list.txt` for the IP adresses of the created machines
 2. Set `KUBECONFIG` to `$PWD/generated-kube.conf` and verify that `kubectl get nodes -o wide` works.
@@ -99,6 +99,9 @@ Required by Openstack:
 
 Build the image
 - `docker build -t farberg/edsc-microk8s-playbook .`
+
+Push the image (maintainers only):
+- `docker push farberg/edsc-microk8s-playbook`
 
 Run a container
 - `docker run --rm -ti farberg/edsc-microk8s-playbook` 

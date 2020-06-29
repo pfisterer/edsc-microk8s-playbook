@@ -1,27 +1,74 @@
 ---
 # ----------------------------------------------------
+# Install helm
 # ----------------------------------------------------
-# Nginx Ingress
+
+- name: Install helm APT repo key
+  apt_key:
+    url: "https://helm.baltorepo.com/organization/signing.asc"
+    state: present
+
+- name: Setup helm APT repo
+  apt_repository:
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+    state: present
+
+- name: Install Helm
+  apt:
+    name: ["helm"]
+    state: present
+    update_cache: yes
+
+# ----------------------------------------------------
+# Nginx Ingress via helm
+# ----------------------------------------------------
+
+# Not added by default with Helm v3 (required for nginx-ingress)
+- name: Add stable repo to helm
+  command: "helm repo add stable https://kubernetes-charts.storage.googleapis.com"
+
+- name: Update helm repos
+  command: helm repo update
+
+# Check if installed
 - name: Check if nginx-ingress is already installed
   shell: helm status -n kube-system nginx-ingress
   ignore_errors: True
   changed_when: False
-  no_log: True
   register: nginx_status
   when: enable_nginx == True
 
+# UDP configmap
+- name: Render UDP config map template content to temporary file
+  template:
+    src: files/nginx-udp-configmap.yaml
+    dest: "/root/nginx-udp-configmap.yaml"
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True
+
 - name: Apply UDP configmap
-  shell: kubectl apply -f files/nginx-udp-configmap.yaml
+  shell: microk8s.kubectl apply -f /root/nginx-udp-configmap.yaml
+  when:
+    - nginx_status.rc != 0
+    - enable_nginx == True
+
+# TCP configmap
+- name: Render template content to temporary file
+  template:
+    src: files/nginx-tcp-configmap.yaml
+    dest: "/root/nginx-tcp-configmap.yaml"
   when:
     - nginx_status.rc != 0
     - enable_nginx == True
 
 - name: Apply TCP configmap
-  shell: kubectl apply -f files/nginx-tcp-configmap.yaml
+  shell: microk8s.kubectl apply -f /root/nginx-tcp-configmap.yaml
   when:
     - nginx_status.rc != 0
     - enable_nginx == True
 
+# Helm values.yaml
 - name: Create temporary file with helm values
   tempfile:
     state: file
@@ -39,6 +86,7 @@
     - nginx_status.rc != 0
     - enable_nginx == True
 
+# Deploy NGINX via helm
 - name: Deploy NGINX Ingress
   shell: "helm install --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
   when:

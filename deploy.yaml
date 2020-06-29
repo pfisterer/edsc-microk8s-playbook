@@ -63,7 +63,6 @@
   user: ubuntu
   become: yes
   become_user: root
-  gather_facts: false
   tags:
     - base
   roles:
@@ -74,10 +73,9 @@
 # ----------------------------------------------------
 
 - name: Install addons
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  environment:
-    KUBECONFIG: "{{generated_kubeconf_file}}"
+  hosts: all
+  user: ubuntu
+  become: yes
+  become_user: root
   roles:
     - role: microk8s-addons

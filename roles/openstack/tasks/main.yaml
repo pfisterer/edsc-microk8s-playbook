@@ -1,31 +1,59 @@
-- name: Create OpenStack instance
-  os_server:
-    security_groups: "{{security_group}}"
-    name: "{{ nodes_name }}{{ item }}"
-    image: "{{ nodes_image }}"
-    key_name: "{{ key_name }}"
-    flavor_ram: "{{ nodes_flavor_ram if not nodes_flavor_name else omit }}"
-    flavor: "{{ nodes_flavor_name if nodes_flavor_name else omit }}"
-    nics:
-      - net-name: "{{ external_network_name }}"
-    userdata: |
+- name: Check that the /root/.ssh/id_rsa.pub exists
+  stat:
+    path: /root/.ssh/id_rsa.pub
+  register: ssh_stat_result
+
+- name: Read ssh key from /root/.ssh/id_rsa.pub
+  set_fact:
+    local_id_rsa_pub: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+  when: ssh_stat_result.stat.exists
+
+- name: Set empty value
+  set_fact:
+    local_id_rsa_pub: ""
+  when: not ssh_stat_result.stat.exists
+
+- name: Set userdata value
+  set_fact:
+    userdata_value: |
       #cloud-config
       package_upgrade: true
-      hostname: "{{ nodes_name }}{{ item }}"
+      hostname: "{{ nodes_name }}"
       manage_etc_hosts: false
       packages:
         - python
         - python-simplejson
-  register: "instances"
-  with_sequence: count={{ 1 }}
+        - apt-transport-https
+      ssh_authorized_keys:
+        - "{{ local_id_rsa_pub }}"
+
+- name: Dump userdata
+  debug:
+    var: userdata_value
+
+- name: Create OpenStack instance
+  os_server:
+    security_groups: "{{security_group}}"
+    name: "{{ nodes_name }}"
+    image: "{{ nodes_image }}"
+    # key_name: "{{ key_name }}"
+    flavor_ram: "{{ nodes_flavor_ram if not nodes_flavor_name else omit }}"
+    flavor: "{{ nodes_flavor_name if nodes_flavor_name else omit }}"
+    nics:
+      - net-name: "{{ external_network_name }}"
+    userdata: "{{ userdata_value }}"
+  register: "instance"
+
+- name: Dump instance
+  debug:
+    var: instance
 
 - name: Update inventory
   add_host:
-    name: "{{ item.server.name }}"
-    ansible_ssh_host: "{{ item.openstack.accessIPv4 }}"
+    name: "{{ instance.server.name }}"
+    ansible_ssh_host: "{{ instance.openstack.accessIPv4 }}"
     ansible_ssh_user: ubuntu
     groupname: nodes
-  with_items: "{{ instances.results }}"
 
 - name: Save inventory to file
   template:
