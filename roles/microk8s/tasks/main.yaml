@@ -54,8 +54,18 @@
   register: csr_mod_result
   when: ip_included.stdout_lines[0]|int == 0
 
-- name: Restart microk8s
-  shell: "microk8s.stop && microk8s.start"
+- name: Restart microk8s (stop)
+  shell: "microk8s.stop"
+  when: ip_included.stdout_lines[0]|int == 0
+
+- name: Restart microk8s (start)
+  shell: "microk8s.start"
+  when: ip_included.stdout_lines[0]|int == 0
+  ignore_errors: True
+
+- name: Wait for microk8s to be ready after updating the CSR
+  shell: "microk8s status --wait-ready"
+  changed_when: False
   when: ip_included.stdout_lines[0]|int == 0
 
 # ----------------------------------------------------
@@ -63,20 +73,21 @@
 # ----------------------------------------------------
 
 - name: Write config to file
-  shell: "microk8s.config > /root/microk8s-kube.conf"
-
-- name: Replace IP in config
-  replace:
-    path: /root/microk8s-kube.conf
-    regexp: 'server: https://[0-9\\.]+:16443'
-    replace: "server: https://{{ansible_host}}:16443"
+  shell: "microk8s.config > /root/.kube/conf"
 
 - name: Download kubeconf
   fetch:
-    src: /root/microk8s-kube.conf
+    src: /root/.kube/conf
     dest: "{{generated_kubeconf_file}}"
     flat: yes
     fail_on_missing: yes
+
+- name: Replace IP in config
+  replace:
+    path: "{{generated_kubeconf_file}}"
+    regexp: 'server: https://[0-9\\.]+:16443'
+    replace: "server: https://{{ansible_host}}:16443"
+  delegate_to: localhost
 
 # ----------------------------------------------------
 # Get microk8s status

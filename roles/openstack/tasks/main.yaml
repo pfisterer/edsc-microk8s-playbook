@@ -36,7 +36,7 @@
     security_groups: "{{security_group}}"
     name: "{{ nodes_name }}"
     image: "{{ nodes_image }}"
-    # key_name: "{{ key_name }}"
+    key_name: "{{ key_name }}"
     flavor_ram: "{{ nodes_flavor_ram if not nodes_flavor_name else omit }}"
     flavor: "{{ nodes_flavor_name if nodes_flavor_name else omit }}"
     nics:

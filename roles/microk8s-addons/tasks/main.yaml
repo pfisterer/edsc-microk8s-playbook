@@ -32,7 +32,7 @@
 
 # Check if installed
 - name: Check if nginx-ingress is already installed
-  shell: helm status -n kube-system nginx-ingress
+  shell: helm status --kubeconfig /root/.kube/conf -n kube-system nginx-ingress
   ignore_errors: True
   changed_when: False
   register: nginx_status
@@ -88,7 +88,7 @@
 
 # Deploy NGINX via helm
 - name: Deploy NGINX Ingress
-  shell: "helm install --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
+  shell: "helm install --kubeconfig /root/.kube/conf --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
   when:
     - nginx_status.rc != 0
     - enable_nginx == True

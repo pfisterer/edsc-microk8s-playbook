@@ -1,6 +1,6 @@
 nodes_count: "{{ lookup('env', 'NODE_COUNT') | default(1, true) }}"
 
-nodes_name: "{{ lookup('env','NODE_NAME') | default('studentnode', true) }}-"
+nodes_name: "{{ lookup('env','NODE_NAME') | default('studentnode', true) }}"
 nodes_image: "{{ lookup('env','IMAGE') | default('a0a1c616-f4f3-429d-8de9-8e74b5df805c', true) }}"
 nodes_flavor_name: "{{ lookup('env','NODE_FLAVOR') | default('m1.large', true) }}"
 

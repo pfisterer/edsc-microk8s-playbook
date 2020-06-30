@@ -65,6 +65,8 @@ docker run --rm -ti \
 
 ## Environment Variables
 
+For default values, see [group_vars/all.yaml](group_vars/all.yaml)
+
 Specific to this project:
 
 | Name                  | Required | Description                                        | Example                                    |
@@ -82,7 +84,13 @@ Specific to this project:
 | GENERATED_KUBECONFIG  |          | Path of the file to store the generated kubeconfig | `generated-{{NODE_NAME}}-kube.comf`        |
 | MICROK8S_VERSION      |          | Version of microk8s                                | `1.18/stable`                              |
 
-For default values, see [group_vars/all.yaml](group_vars/all.yaml)
+Only in Docker:
+
+| Name                   | Required | Description                              | Example                                  |
+| ---------------------- | -------- | ---------------------------------------- | ---------------------------------------- |
+| STATUS_REPORT_POST_URL |          | URL where the result (JSON) is POSTed to | `http://some-url/path`                   |
+| USE_SSH_PRIV_KEY       |          | Private SSH key to use                   | `ssh-rsa AAA...AB bla@somehost.com`      |
+| USE_SSH_PUB_KEY        |          | Public SSH key to use                    | `-----BEGIN RSA PRIVATE KEY-----\n.....` |
 
 Required by Openstack:
 
@@ -108,7 +116,7 @@ Run a container
 
 ## Notes
 
-Run just microk8s installation on existing hosts:
+Run microk8s installation on existing hosts:
 
 ```bash
 ansible-playbook -i generated-server-list.txt --tags microk8s deploy.yaml

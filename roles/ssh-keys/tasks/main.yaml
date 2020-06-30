@@ -1,8 +1,8 @@
 - name: Remove existing entries for this machine
   shell: "ssh-keygen -R {{ hostvars[item]['ansible_ssh_host'] }}"
-  with_items: "{{ groups.nodes }}"
   ignore_errors: True
   changed_when: False
+  with_items: "{{ groups.all }}"
 
 - name: For each host, scan for its ssh public key
   shell: "ssh-keyscan -trsa {{ hostvars[item]['ansible_ssh_host'] }}"
@@ -10,7 +10,7 @@
   until: ssh_known_host_results.stdout != ''
   retries: 75
   ignore_errors: yes
-  with_items: "{{ groups.nodes }}"
+  with_items: "{{ groups.all }}"
 
 - name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
   known_hosts:
