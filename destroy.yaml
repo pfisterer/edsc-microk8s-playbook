@@ -1,0 +1,12 @@
+---
+# ----------------------------------------------------
+# Delete OpenStack resources
+# ----------------------------------------------------
+- name: Create OpenStack resources cluster
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Delete OpenStack instance
+      os_server:
+        name: "{{ nodes_name }}"
+        state: "absent"
