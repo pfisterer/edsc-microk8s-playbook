@@ -17,14 +17,14 @@ if [[ ! -z "$USE_SSH_PRIV_KEY" && ! -z "$USE_SSH_PUB_KEY" ]]; then
 	echo "$USE_SSH_PRIV_KEY" > "$SSH_PRIV_FILE"
 	echo "$USE_SSH_PUB_KEY" > "$SSH_PUB_FILE"
 
+	chmod 600 -R "$DIR"
 	chmod 700 "$DIR"
-	chmod 600 "$DIR/*"
 fi
 
 # If no key exists, create new one
 if [[ ! -f "$SSH_PRIV_FILE" || ! -f "$SSH_PUB_FILE"  ]]; then
 	echo "No existing ssh key $SSH_PRIV_FILE ; generating a new ssh key"
-	ssh-keygen -b 2048 -t rsa -q -N "" -f $SSH_PRIV_FILE)
+	ssh-keygen -b 2048 -t rsa -q -N "" -f $SSH_PRIV_FILE
 fi
 
 # ---------------------------------------------------------
