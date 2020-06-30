@@ -80,7 +80,8 @@ if [[ ! -z "$STATUS_REPORT_POST_URL" ]]; then
 		'{exit_code: $ec, kubeconfig: $kc, serverlist: $sl, log_output: $log, ssh_priv: $ssh_priv, ssh_pub: $ssh_pub}' \
 		> "$JSON_STATUS_FILE"
 
-	echo "Contents of $JSON_STATUS_FILE: `cat $JSON_STATUS_FILE`"
+	echo "Contents of $JSON_STATUS_FILE:"
+	cat "$JSON_STATUS_FILE"
 
 	# ---------------------------------------------------------
 	# Upload JSON to $STATUS_REPORT_POST_URL
