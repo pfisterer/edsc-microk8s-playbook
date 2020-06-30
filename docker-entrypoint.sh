@@ -35,7 +35,7 @@ ANSIBLE_LOG_FILE="/data/ansible.log"
 JSON_STATUS_FILE="/data/result.json"
 
 echo "Running $@"
-exec "$@" 2>&1 | tee "$ANSIBLE_LOG_FILE" 2>&1
+"$@" 2>&1 | tee "$ANSIBLE_LOG_FILE" 2>&1
 
 ANSIBLE_EXIT_CODE=$?
 echo "Ansible exit code is $ANSIBLE_EXIT_CODE"
