@@ -37,7 +37,7 @@ JSON_STATUS_FILE="/data/result.json"
 echo "Running $@"
 "$@" 2>&1 | tee "$ANSIBLE_LOG_FILE" 2>&1
 
-ANSIBLE_EXIT_CODE=$?
+ANSIBLE_EXIT_CODE=${PIPESTATUS[0]}
 echo "Ansible exit code is $ANSIBLE_EXIT_CODE"
 
 # ---------------------------------------------------------
