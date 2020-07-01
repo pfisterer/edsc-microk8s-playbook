@@ -88,7 +88,7 @@ if [[ ! -z "$STATUS_REPORT_POST_URL" ]]; then
 	# ---------------------------------------------------------
 
 	echo "Uploading status to $STATUS_REPORT_POST_URL"
-	curl --silent --show-error -X POST -H "Content-Type: application/json" --data "@$JSON_STATUS_FILE" "$STATUS_REPORT_POST_URL"
+ 	curl --silent --show-error -X POST -H "Content-Type: application/json" --data "@$JSON_STATUS_FILE" "$STATUS_REPORT_POST_URL"
 
 fi
 
