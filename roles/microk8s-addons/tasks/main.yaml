@@ -44,14 +44,14 @@
     src: files/nginx-udp-configmap.yaml
     dest: "/root/nginx-udp-configmap.yaml"
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
 
 - name: Apply UDP configmap
   shell: microk8s.kubectl apply -f /root/nginx-udp-configmap.yaml
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
 
 # TCP configmap
 - name: Render template content to temporary file
@@ -59,14 +59,14 @@
     src: files/nginx-tcp-configmap.yaml
     dest: "/root/nginx-tcp-configmap.yaml"
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
 
 - name: Apply TCP configmap
   shell: microk8s.kubectl apply -f /root/nginx-tcp-configmap.yaml
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
 
 # Helm values.yaml
 - name: Create temporary file with helm values
@@ -75,20 +75,20 @@
     suffix: nginx-ingress-config.yaml
   register: nginx_ingress_temp_config
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
 
 - name: Render template content to temporary file
   template:
     src: files/nginx-ingress-values.yaml
     dest: "{{ nginx_ingress_temp_config.path }}"
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
 
 # Deploy NGINX via helm
 - name: Deploy NGINX Ingress
   shell: "helm install --kubeconfig /root/.kube/conf --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
   when:
-    - nginx_status.rc != 0
     - enable_nginx == True
+    - nginx_status.rc != 0
