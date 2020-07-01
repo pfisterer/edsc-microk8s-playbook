@@ -75,19 +75,21 @@
 - name: Write config to file
   shell: "microk8s.config > /root/.kube/conf"
 
+- name: Write config to 2nd file (will contain the external IP of MetalLB)
+  shell: "microk8s.config > /root/.kube/conf-with-external-ip"
+
+- name: Replace IP in config (to use the external IP of MetalLB)
+  replace:
+    path: "/root/.kube/conf-with-external-ip"
+    regexp: 'server: https://[0-9\\.]+:16443'
+    replace: "server: https://{{ansible_host}}:16443"
+
 - name: Download kubeconf
   fetch:
-    src: /root/.kube/conf
+    src: /root/.kube/conf-with-external-ip
     dest: "{{generated_kubeconf_file}}"
     flat: yes
     fail_on_missing: yes
-
-- name: Replace IP in config
-  replace:
-    path: "{{generated_kubeconf_file}}"
-    regexp: 'server: https://[0-9\\.]+:16443'
-    replace: "server: https://{{ansible_host}}:16443"
-  delegate_to: localhost
 
 # ----------------------------------------------------
 # Get microk8s status
