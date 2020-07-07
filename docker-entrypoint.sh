@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+export ANSIBLE_STDOUT_CALLBACK=debug 
+
 # ---------------------------------------------------------
 # Generate ssh key if none exists
 # ---------------------------------------------------------
