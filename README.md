@@ -105,14 +105,16 @@ Required by Openstack:
 
 # Build Docker image
 
-Build the image
-- `docker build -t farberg/edsc-microk8s-playbook .`
+```bash
+# Build the image
+docker build -t farberg/edsc-microk8s-playbook .
 
-Push the image (maintainers only):
-- `docker push farberg/edsc-microk8s-playbook`
+# Push the image (maintainers only)
+docker push farberg/edsc-microk8s-playbook
 
-Run a container
-- `docker run --rm -ti farberg/edsc-microk8s-playbook` 
+# Run a container
+docker run --rm -ti farberg/edsc-microk8s-playbook
+```
 
 ## Notes
 
