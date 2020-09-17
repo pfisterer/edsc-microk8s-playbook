@@ -20,8 +20,8 @@ dns_server_2: "{{ lookup('env','DNS_SERVER_2') | default('8.8.8.8', true) }}"
 ssh_known_hosts_command: "ssh-keyscan -T 10"
 ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
 
-generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default(playbook_dir + '/generated-' + nodes_name + 'server-list.txt', true) }}"
-generated_kubeconf_file: "{{ lookup('env','GENERATED_KUBECONFIG') | default(playbook_dir + '/generated-' + nodes_name + 'kube.conf', true) }}"
+generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default(playbook_dir + '/generated-' + nodes_name + '-server-list.txt', true) }}"
+generated_kubeconf_file: "{{ lookup('env','GENERATED_KUBECONFIG') | default(playbook_dir + '/generated-' + nodes_name + '-kube.conf', true) }}"
 
 microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.18/stable', true) }}"
 enable_nginx: "{{ lookup('env','MICROK8S_ENABLE_NGINX') | default(true, true) }}"
