@@ -23,9 +23,9 @@
 # Nginx Ingress via helm
 # ----------------------------------------------------
 
-# Not added by default with Helm v3 (required for nginx-ingress)
-- name: Add stable repo to helm
-  command: "helm repo add stable https://kubernetes-charts.storage.googleapis.com"
+# Required for nginx-ingress
+- name: Add ingress-nginx repo to helm
+  command: "helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx"
 
 - name: Update helm repos
   command: helm repo update
@@ -88,7 +88,7 @@
 
 # Deploy NGINX via helm
 - name: Deploy NGINX Ingress
-  shell: "helm install --kubeconfig /root/.kube/conf --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'stable/nginx-ingress'"
+  shell: "helm install --kubeconfig /root/.kube/conf --namespace kube-system -f {{ nginx_ingress_temp_config.path }} nginx-ingress 'ingress-nginx/ingress-nginx'"
   when:
     - enable_nginx == True
     - nginx_status.rc != 0
