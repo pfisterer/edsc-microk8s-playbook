@@ -73,10 +73,10 @@
 # ----------------------------------------------------
 
 - name: Write config to file
-  shell: "microk8s.config > /root/.kube/conf"
+  shell: "microk8s.config > /root/.kube/conf ; chmod 660 /root/.kube/conf"
 
 - name: Write config to 2nd file (will contain the external IP of MetalLB)
-  shell: "microk8s.config > /root/.kube/conf-with-external-ip"
+  shell: "microk8s.config > /root/.kube/conf-with-external-ip; chmod 660 /root/.kube/conf-with-external-ip"
 
 - name: Replace IP in config (to use the external IP of MetalLB)
   replace:
