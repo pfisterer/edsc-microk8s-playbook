@@ -108,6 +108,14 @@
   when: '"dns: enabled" not in microk8s_status.stdout_lines'
 
 # ----------------------------------------------------
+# Hostpath Storage
+# ----------------------------------------------------
+
+- name: MicroK8S - Enable Storage
+  shell: "microk8s enable storage"
+  when: '"storage: enabled" not in microk8s_status.stdout_lines'
+
+# ----------------------------------------------------
 # Dashboard
 # ----------------------------------------------------
 
