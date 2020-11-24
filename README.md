@@ -2,9 +2,9 @@
 
 Creates a virtual machine in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed.
 
-The motivation for creating this project was that in some OpenStack installations, no recent version of LBaaS v2 is available. This limits the use of Kubernetes Services of type `LoadBalancer`. Hence, this project uses [MetalLB](https://metallb.universe.tf/) to realize load balancing.
+The motivation for creating this project was that in some OpenStack installations, no recent version of LBaaS v2 is available. This limits the use of Kubernetes Services of type `LoadBalancer`. Hence, this project uses [MetalLB](https://metallb.universe.tf/) to provide load balancing.
 
-However, as OpenStack only allows [a single floating IP to be assigned to an instance](https://ask.openstack.org/en/question/11901/how-to-configure-multiple-floating-ip-for-one-instance/), this project re-uses the hosts IP. 
+However, as OpenStack only allows [a single floating IP to be assigned to an instance](https://ask.openstack.org/en/question/11901/how-to-configure-multiple-floating-ip-for-one-instance/), this project re-uses the hosts IP (which limits the ports available to Kubernetes).
 
 A Docker image is available at <https://hub.docker.com/r/farberg/edsc-microk8s-playbook>. 
 
@@ -103,7 +103,7 @@ Required by Openstack:
 | OS_DOMAIN_NAME  | x        |             | `default`                                      |
 
 
-# Build Docker image
+# Building the Docker Image
 
 ```bash
 # Build the image
