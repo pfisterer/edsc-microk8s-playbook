@@ -141,3 +141,10 @@
 - name: MetalLB - Enable MetalLB
   shell: "microk8s enable metallb:{{metallb_ip_begin}}-{{metallb_ip_end}}"
   when: '"metallb: enabled" not in microk8s_status.stdout_lines'
+
+# ----------------------------------------------------
+# Create alias for microk8s.kubectl
+# ----------------------------------------------------
+
+- name: Create alias for microk8s.kubectl
+  shell: "snap alias microk8s.kubectl kubectl"
