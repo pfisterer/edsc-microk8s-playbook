@@ -21,8 +21,7 @@
       hostname: "{{ nodes_name }}"
       manage_etc_hosts: false
       packages:
-        - python
-        - python-simplejson
+        - python3
         - apt-transport-https
       ssh_authorized_keys:
         - "{{ local_id_rsa_pub }}"
