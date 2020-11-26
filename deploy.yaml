@@ -54,6 +54,13 @@
       tags:
         - skip_ansible_lint
 
+    - name: Symlink /usr/bin/python -> /usr/bin/python3
+      raw: |
+        if [ -f /usr/bin/python3 ] && [ ! -f /usr/bin/python ]; then
+          ln --symbolic /usr/bin/python3 /usr/bin/python; 
+        fi
+      become: true
+
 # ----------------------------------------------------
 # Install microk8s
 # ----------------------------------------------------
