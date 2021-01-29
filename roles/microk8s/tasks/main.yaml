@@ -116,6 +116,14 @@
   when: '"storage: enabled" not in microk8s_status.stdout_lines'
 
 # ----------------------------------------------------
+# Registry
+# ----------------------------------------------------
+
+- name: MicroK8S - Enable Registry
+  shell: "microk8s enable registry"
+  when: '"registry: enabled" not in microk8s_status.stdout_lines'
+
+# ----------------------------------------------------
 # Dashboard
 # ----------------------------------------------------
 
