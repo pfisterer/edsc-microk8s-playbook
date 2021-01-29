@@ -76,6 +76,19 @@
     - role: microk8s
 
 # ----------------------------------------------------
+# Fix permissions of kubeconf file
+# ----------------------------------------------------
+
+- name: Fix permissions of kubeconf file
+  hosts: localhost
+  connection: local
+  tasks:
+  - name: Download kubeconf
+    ansible.builtin.file:
+      path: "{{generated_kubeconf_file}}"
+      mode: '0600'
+
+# ----------------------------------------------------
 # Install addons
 # ----------------------------------------------------
 
