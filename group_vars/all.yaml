@@ -23,5 +23,5 @@ ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
 generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default(playbook_dir + '/generated-' + nodes_name + '-server-list.txt', true) }}"
 generated_kubeconf_file: "{{ lookup('env','GENERATED_KUBECONFIG') | default(playbook_dir + '/generated-' + nodes_name + '-kube.conf', true) }}"
 
-microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.19/stable', true) }}"
+microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.20/stable', true) }}"
 enable_nginx: "{{ lookup('env','MICROK8S_ENABLE_NGINX') | default(true, true) }}"
