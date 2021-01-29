@@ -27,7 +27,6 @@ export OS_PROJECT_NAME="my-project"
 
 export ANSIBLE_HOST_KEY_CHECKING=False 
 
-export NODE_PASSWORD="bla"
 export IMAGE="Ubuntu Server 20.04 64bit"
 export NODE_FLAVOR="m1.medium"
 export NODE_SEC_GROUP="default"
