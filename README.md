@@ -37,7 +37,7 @@ export FLOATING_IP_POOL="ext-network"
 ansible-playbook deploy.yaml
 ```
 
-## Usage (Docker, image [farberg/edsc-openstack-studentnodes](https://hub.docker.com/repository/docker/farberg/edsc-microk8s-playbook))
+## Usage (Docker, image [farberg/edsc-openstack-studentnodes](https://hub.docker.com/r/farberg/edsc-microk8s-playbook))
 
 1. Directory where to store the file with IP adresses of the created machines
   - Create directory on your local machine
