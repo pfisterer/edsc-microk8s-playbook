@@ -81,7 +81,7 @@ Specific to this project:
 | DNS_SERVER_2          |          | DNS server #2 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
 | GENERATED_SERVER_LIST |          | Path of the file to store virtual machine's IP     | `generated-{{NODE_NAME}}-server-list.txt`  |
 | GENERATED_KUBECONFIG  |          | Path of the file to store the generated kubeconfig | `generated-{{NODE_NAME}}-kube.comf`        |
-| MICROK8S_VERSION      |          | Version of microk8s                                | `1.18/stable`                              |
+| MICROK8S_VERSION      |          | Version of microk8s                                | `1.20/stable`                              |
 
 Only in Docker:
 
