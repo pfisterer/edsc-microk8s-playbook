@@ -61,6 +61,32 @@
         fi
       become: true
 
+
+#-------------------------------------------------------
+# Configure password-based login for user ubuntu
+#-------------------------------------------------------
+
+    - name: Allow password-based login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication no$"
+        line: "PasswordAuthentication yes"
+        owner: root
+        group: root
+      become: true
+      when: enable_password_login_for_user_ubuntu == True
+
+    - name: Change Password for user ubuntu
+      user: name=ubuntu password="{{ password_for_user_ubuntu | password_hash('sha512', 'saltdfjalsdf') }}" update_password=always
+      become: true
+      when: enable_password_login_for_user_ubuntu == True
+
+    - name: Restart sshd
+      service:
+        name: ssh
+        state: restarted
+      become: true
+
 # ----------------------------------------------------
 # Install microk8s
 # ----------------------------------------------------
