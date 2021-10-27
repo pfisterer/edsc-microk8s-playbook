@@ -1,4 +1,3 @@
----
 # ----------------------------------------------------
 # Create OpenStack resources cluster and wait for cloud init to finish
 # ----------------------------------------------------

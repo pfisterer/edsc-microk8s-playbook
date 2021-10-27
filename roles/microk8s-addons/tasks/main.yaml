@@ -1,4 +1,14 @@
 ---
+
+# ----------------------------------------------------
+# Enable code completion
+# ----------------------------------------------------
+
+- name: Enable shell completion
+  shell: kubectl completion bash > /etc/bash_completion.d/kubectl
+  args: 
+    creates: /etc/bash_completion.d/kubectl
+
 # ----------------------------------------------------
 # Install helm
 # ----------------------------------------------------
