@@ -6,7 +6,7 @@ nodes_image: "{{ lookup('env','IMAGE') | default('Ubuntu Server 20.04 64bit', tr
 nodes_flavor_name: "{{ lookup('env','NODE_FLAVOR') | default('m1.large', true) }}"
 
 security_group: "{{ lookup('env','NODE_SEC_GROUP') | default('default', true) }}"
-key_name: "{{ lookup('env','KEY') | default('Dennis Mac 2017', true)  }}"
+key_name: "{{ lookup('env','KEY') | default('Dennis 2017', true)  }}"
 
 external_network_name: "{{ lookup('env','EXT_NET') | default('DHBW', true) }}"
 floating_ip_pools: "{{ lookup('env', 'FLOATING_IP_POOL') | default('DHBW', true) }}"
@@ -25,4 +25,3 @@ generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default(
 generated_kubeconf_file: "{{ lookup('env','GENERATED_KUBECONFIG') | default(playbook_dir + '/generated-' + nodes_name + '-kube.conf', true) }}"
 
 microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.21/stable', true) }}"
-enable_nginx: "{{ lookup('env','MICROK8S_ENABLE_NGINX') | default(true, true) }}"
