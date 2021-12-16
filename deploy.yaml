@@ -20,8 +20,6 @@
         connect_timeout: 20
         timeout: 600
         search_regex: OpenSSH
-      vars:
-        ansible_connection: local
 
 # ----------------------------------------------------
 # Scan SSH keys
@@ -53,17 +51,18 @@
       tags:
         - skip_ansible_lint
 
-    - name: Symlink /usr/bin/python -> /usr/bin/python3
-      raw: |
-        if [ -f /usr/bin/python3 ] && [ ! -f /usr/bin/python ]; then
-          ln --symbolic /usr/bin/python3 /usr/bin/python; 
-        fi
-      become: true
-
-
 #-------------------------------------------------------
 # Configure password-based login for user ubuntu
 #-------------------------------------------------------
+- name: Configure password-based login for user ubuntu
+  hosts: all
+  gather_facts: True
+  become: true
+  become_user: root
+  tags:
+    - openstack
+  tasks:
+    - meta: clear_facts 
 
     - name: Allow password-based login
       lineinfile:
@@ -72,19 +71,17 @@
         line: "PasswordAuthentication yes"
         owner: root
         group: root
-      become: true
       when: enable_password_login_for_user_ubuntu == True
 
     - name: Change Password for user ubuntu
       user: name=ubuntu password="{{ password_for_user_ubuntu | password_hash('sha512', 'saltdfjalsdf') }}" update_password=always
-      become: true
       when: enable_password_login_for_user_ubuntu == True
 
     - name: Restart sshd
       service:
         name: ssh
         state: restarted
-      become: true
+      when: enable_password_login_for_user_ubuntu == True
 
 # ----------------------------------------------------
 # Install microk8s
