@@ -62,8 +62,6 @@
   tags:
     - openstack
   tasks:
-    - meta: clear_facts 
-
     - name: Allow password-based login
       lineinfile:
         path: /etc/ssh/sshd_config
