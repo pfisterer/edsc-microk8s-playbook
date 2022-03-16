@@ -1,6 +1,7 @@
+--- 
+# ----------------------------------------------------
 # ----------------------------------------------------
 # Create OpenStack resources cluster and wait for cloud init to finish
-# ----------------------------------------------------
 - name: Create OpenStack resources cluster
   hosts: localhost
   gather_facts: false
@@ -9,7 +10,7 @@
 
 - name: Wait for nodes to be ready
   hosts: all
-  gather_facts: False
+  gather_facts: false
   tags:
     - openstack
   tasks:
@@ -103,10 +104,10 @@
   hosts: localhost
   connection: local
   tasks:
-  - name: Download kubeconf
-    ansible.builtin.file:
-      path: "{{generated_kubeconf_file}}"
-      mode: '0600'
+    - name: Download kubeconf
+      ansible.builtin.file:
+        path: "{{generated_kubeconf_file}}"
+        mode: "0600"
 
 # ----------------------------------------------------
 # Install addons
@@ -115,7 +116,7 @@
 - name: Install addons
   hosts: all
   user: ubuntu
-  become: yes
+  become: true
   become_user: root
   roles:
     - role: microk8s-addons

@@ -1,3 +1,4 @@
 *.retry
 private-*
 generated-*
+.vscode/settings.json
