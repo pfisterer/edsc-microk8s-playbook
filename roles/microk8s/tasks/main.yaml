@@ -57,6 +57,10 @@
 - name: Restart microk8s (stop)
   shell: "microk8s.stop"
   when: ip_included.stdout_lines[0]|int == 0
+  retries: 4
+  delay: 10
+  register: result
+  until: result.rc == 0
 
 - name: Restart microk8s (start)
   shell: "microk8s.start"
@@ -94,6 +98,7 @@
 # ----------------------------------------------------
 # Get microk8s status
 # ----------------------------------------------------
+
 - name: Get microk8s status
   shell: "microk8s status --format yaml"
   changed_when: False
@@ -110,10 +115,11 @@
 # ----------------------------------------------------
 # Adons
 # ----------------------------------------------------
+
 - name: MicroK8S - Enable DNS
   shell: "microk8s enable {{ item }}"
   when: addon_status[item] != 'enabled'
-  with_items: ["dns", "storage", "registry", "dashboard"]
+  with_items: ["dns", "storage", "registry", "dashboard", "helm3"]
 
 # ----------------------------------------------------
 # MetalLB
@@ -138,5 +144,21 @@
 # Create alias for microk8s.kubectl
 # ----------------------------------------------------
 
-- name: Create alias for microk8s.kubectl
+- name: Create aliases for kubectl and helm
   shell: "snap alias microk8s.kubectl kubectl"
+  args:
+    creates: /snap/bin/kubectl
+
+- name: Create alias for microk8s.helm3
+  shell: "snap alias microk8s.helm3 helm"
+  args:
+    creates: /snap/bin/helm
+
+# ----------------------------------------------------
+# Enable code completion
+# ----------------------------------------------------
+
+- name: Enable shell completion
+  shell: kubectl completion bash > /etc/bash_completion.d/kubectl
+  args:
+    creates: /etc/bash_completion.d/kubectl
