@@ -1,4 +1,4 @@
---- 
+---
 # ----------------------------------------------------
 # ----------------------------------------------------
 # Create OpenStack resources cluster and wait for cloud init to finish
@@ -11,8 +11,6 @@
 - name: Wait for nodes to be ready
   hosts: all
   gather_facts: false
-  tags:
-    - openstack
   tasks:
     - name: Wait during nodes boot
       wait_for:
@@ -21,6 +19,9 @@
         connect_timeout: 20
         timeout: 600
         search_regex: OpenSSH
+
+    - name: Wait for ssh
+      wait_for_connection:
 
 # ----------------------------------------------------
 # Scan SSH keys
@@ -108,15 +109,3 @@
       ansible.builtin.file:
         path: "{{generated_kubeconf_file}}"
         mode: "0600"
-
-# ----------------------------------------------------
-# Install addons
-# ----------------------------------------------------
-
-- name: Install addons
-  hosts: all
-  user: ubuntu
-  become: true
-  become_user: root
-  roles:
-    - role: microk8s-addons
