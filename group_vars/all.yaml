@@ -1,27 +1,21 @@
-enable_password_login_for_user_ubuntu: "{{ lookup('env','PASSWORD_LOGIN_FOR_USER_UBUNTU') | default(false, true) }}"
-password_for_user_ubuntu: "{{ lookup('env','PASSWORD_FOR_USER_UBUNTU') | default('changeme', true) }}"
+terraform_folder: "{{ playbook_dir }}/generated-terraform/"
 
-nodes_name: "{{ lookup('env','NODE_NAME') | default('studentnode', true) }}"
-nodes_image: "{{ lookup('env','IMAGE') | default('Ubuntu Server 20.04 64bit', true) }}"
-nodes_flavor_name: "{{ lookup('env','NODE_FLAVOR') | default('m1.large', true) }}"
+enable_password_login_for_user_ubuntu: false
+password_for_user_ubuntu: "changeme{{ 100 | random(seed=playbook_dir }}"
 
-security_group: "{{ lookup('env','NODE_SEC_GROUP') | default('default', true) }}"
-key_name: "{{ lookup('env','KEY') | default('Dennis 2017', true)  }}"
+instance_count: 25
+microk8s_version: "1.25/stable"
 
-external_network_name: "{{ lookup('env','EXT_NET') | default('DHBW', true) }}"
-floating_ip_pools: "{{ lookup('env', 'FLOATING_IP_POOL') | default('DHBW', true) }}"
+nodes_name: "microk8s-host"
+nodes_image: "Ubuntu Server 20.04 64bit"
+nodes_flavor_name: "m1.large"
+security_group: "default"
+key_name: "Dennis 2017"
+domain_name: "default"
+project_id: "124048b2da0c44e5aee6eca2d180de30"
+network_name: "DHBW"
 
-router_name: "{{nodes_name}}-router"
-subnet_name: "{{nodes_name}}-subnet"
-network_name: "{{nodes_name}}-network"
+generated_kubeconf_file_prefix: "{{ playbook_dir + '/generated-' }}"
+generated_kubeconf_file_suffix: "-kube.conf"
 
-dns_server_1: "{{ lookup('env','DNS_SERVER_1') | default('1.1.1.1', true) }}"
-dns_server_2: "{{ lookup('env','DNS_SERVER_2') | default('8.8.8.8', true) }}"
-
-ssh_known_hosts_command: "ssh-keyscan -T 10"
 ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
-
-generated_server_list_file: "{{ lookup('env','GENERATED_SERVER_LIST') | default(playbook_dir + '/generated-' + nodes_name + '-server-list.txt', true) }}"
-generated_kubeconf_file: "{{ lookup('env','GENERATED_KUBECONFIG') | default(playbook_dir + '/generated-' + nodes_name + '-kube.conf', true) }}"
-
-microk8s_version: "{{ lookup('env','MICROK8S_VERSION') | default('1.24/stable', true) }}"

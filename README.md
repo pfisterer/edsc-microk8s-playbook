@@ -1,8 +1,6 @@
-# Ansible Playbook to Create a VM in OpenStack with MicroK8S
+# Ansible Playbook (+ Terraform) to Create a VM in OpenStack with MicroK8S
 
-Creates a virtual machine in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed.
-
-The motivation for creating this project was that in some OpenStack installations, no recent version of LBaaS v2 is available. This limits the use of Kubernetes Services of type `LoadBalancer`. Hence, this project uses [MetalLB](https://metallb.universe.tf/) to provide load balancing.
+Creates a virtual machine in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed. It uses [MetalLB](https://metallb.universe.tf/) to provide load balancing.
 
 However, as OpenStack only allows [a single floating IP to be assigned to an instance](https://ask.openstack.org/en/question/11901/how-to-configure-multiple-floating-ip-for-one-instance/), this project re-uses the hosts IP (which limits the ports available to Kubernetes).
 
@@ -24,15 +22,6 @@ export OS_PASSWORD="my-openstack-secret-pw"
 export OS_DOMAIN_NAME="default"
 export OS_AUTH_URL="http://openstack-controller-hostname:5000/v3"
 export OS_PROJECT_NAME="my-project"
-
-export ANSIBLE_HOST_KEY_CHECKING=False 
-
-export IMAGE="Ubuntu Server 20.04 64bit"
-export NODE_FLAVOR="m1.medium"
-export NODE_SEC_GROUP="default"
-export KEY="my-laptop-ssh-key"
-export EXT_NET="ext-network"
-export FLOATING_IP_POOL="ext-network"
 
 ansible-playbook deploy.yaml
 ```
@@ -62,36 +51,7 @@ docker run --rm -ti \
   farberg/edsc-microk8s-playbook
 ```
 
-## Environment Variables
-
-For default values, see [group_vars/all.yaml](group_vars/all.yaml)
-
-Specific to this project:
-
-| Name                  | Required | Description                                        | Example                                    |
-| --------------------- | -------- | -------------------------------------------------- | ------------------------------------------ |
-| NODE_NAME             |          | Prefix for hostnames                               | `demo-lecture`                             |
-| IMAGE                 | x        | Name of the OS image to use                        | `"Ubuntu Server 18.04 64bit (29.05.2018)"` |
-| NODE_FLAVOR           | x        | Name of the machine flavor to use                  | `m1.medium`                                |
-| NODE_SEC_GROUP        | x        | Security group to use                              | `default`                                  |
-| KEY                   | x        | Name of the SSH key to use                         | `my-laptop-ssh-key`                        |
-| EXT_NET               | x        | Name of the external network                       | `ext-network`                              |
-| FLOATING_IP_POOL      | x        | Name of the floating IP pool                       | `ext-network`                              |
-| DNS_SERVER_1          |          | DNS server #1 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
-| DNS_SERVER_2          |          | DNS server #2 (defaults to 8.8.8.8)                | `8.8.8.8`                                  |
-| GENERATED_SERVER_LIST |          | Path of the file to store virtual machine's IP     | `generated-{{NODE_NAME}}-server-list.txt`  |
-| GENERATED_KUBECONFIG  |          | Path of the file to store the generated kubeconfig | `generated-{{NODE_NAME}}-kube.comf`        |
-| MICROK8S_VERSION      |          | Version of microk8s                                | `1.23/stable`                              |
-
-Only in Docker:
-
-| Name                   | Required | Description                              | Example                                  |
-| ---------------------- | -------- | ---------------------------------------- | ---------------------------------------- |
-| STATUS_REPORT_POST_URL |          | URL where the result (JSON) is POSTed to | `http://some-url/path`                   |
-| USE_SSH_PRIV_KEY       |          | Private SSH key to use                   | `ssh-rsa AAA...AB bla@somehost.com`      |
-| USE_SSH_PUB_KEY        |          | Public SSH key to use                    | `-----BEGIN RSA PRIVATE KEY-----\n.....` |
-
-Required by Openstack:
+## Environment variables (only Openstack):
 
 | Name            | Required | Description | Example                                        |
 | --------------- | -------- | ----------- | ---------------------------------------------- |

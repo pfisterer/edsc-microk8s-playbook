@@ -12,9 +12,9 @@
 
 - name: Add user 'ubuntu' to group microk8s
   user:
-    name: ubuntu
-    group: microk8s
-    append: yes
+    name: "ubuntu"
+    groups: ["microk8s"]
+    append: True
 
 - name: Wait for microk8s to be ready
   shell: "microk8s status --wait-ready"
@@ -57,7 +57,7 @@
 - name: Restart microk8s (stop)
   shell: "microk8s.stop"
   when: ip_included.stdout_lines[0]|int == 0
-  retries: 4
+  retries: 5
   delay: 10
   register: result
   until: result.rc == 0
@@ -65,11 +65,18 @@
 - name: Restart microk8s (start)
   shell: "microk8s.start"
   when: ip_included.stdout_lines[0]|int == 0
-  ignore_errors: True
+  retries: 5
+  delay: 10
+  register: result
+  until: result.rc == 0
 
 - name: Wait for microk8s to be ready after updating the CSR
   shell: "microk8s status --wait-ready"
   changed_when: False
+  retries: 5
+  delay: 10
+  register: result
+  until: result.rc == 0
   when: ip_included.stdout_lines[0]|int == 0
 
 # ----------------------------------------------------
@@ -88,10 +95,14 @@
     regexp: 'server: https://[0-9\\.]+:16443'
     replace: "server: https://{{ansible_host}}:16443"
 
+- name: Create variable for generated local kubeconfig file
+  set_fact:
+    local_kubeconf_file_name: "{{generated_kubeconf_file_prefix}}{{ inventory_hostname }}{{ generated_kubeconf_file_suffix }}"
+
 - name: Download kubeconf
   fetch:
     src: /root/.kube/conf-with-external-ip
-    dest: "{{generated_kubeconf_file}}"
+    dest: "{{ local_kubeconf_file_name }}"
     flat: yes
     fail_on_missing: yes
 
@@ -103,6 +114,9 @@
   shell: "microk8s status --format yaml"
   changed_when: False
   register: microk8s_status_output
+  delay: 10
+  retries: 10
+  until: "'addons' in (microk8s_status_output.stdout | from_yaml)"
 
 - name: Convert microk8s status to YAML object
   set_fact:
@@ -138,6 +152,11 @@
 
 - name: MetalLB - Enable MetalLB
   shell: "microk8s enable metallb:{{metallb_ip_begin}}-{{metallb_ip_end}}"
+  timeout: 180
+  retries: 3
+  delay: 5
+  register: result
+  until: result.rc == 0
   when: addon_status['metallb'] != 'enabled'
 
 # ----------------------------------------------------

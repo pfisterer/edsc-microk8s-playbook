@@ -1,0 +1,7 @@
+all:
+  hosts:
+%{ for index, vm in vms ~}
+    ${vm.name}:
+        ansible_host: ${vm.access_ip_v4}
+        openstack_id: ${vm.id}
+%{ endfor ~}

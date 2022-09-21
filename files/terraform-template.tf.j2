@@ -1,0 +1,38 @@
+terraform {
+  required_providers {
+    local = {
+      source = "hashicorp/local"
+    }
+    openstack = {
+      source = "terraform-provider-openstack/openstack"
+    }
+  }
+}
+
+provider "openstack" {
+  domain_name = "{{ domain_name }}"
+  tenant_id   = "{{ project_id }}"
+}
+
+resource "openstack_compute_instance_v2" "openstack_instances" {
+  count           = {{ instance_count }}
+  name            = "{{ nodes_name }}-${count.index}"
+  image_name      = "{{ nodes_image }}"
+  flavor_name     = "{{ nodes_flavor_name }}"
+  security_groups = ["{{ security_group }}"]
+  key_pair        = "{{ key_name }}"
+  network {
+    name = "{{ network_name }}"
+  }
+  user_data       = <<EOF
+{{ userdata_value }}
+EOF
+}
+
+resource "local_file" "floating_ip" {
+  content  = templatefile("terraform-inventory.tmpl", {
+    vms = openstack_compute_instance_v2.openstack_instances.*
+  })
+  filename = "${path.module}/openstack-inventory.txt"
+}
+
