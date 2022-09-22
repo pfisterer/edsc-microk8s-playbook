@@ -1,3 +1,4 @@
+#!ansible-playbook
 ---
 # ----------------------------------------------------
 - name: Create cloud resources (and wait for them to be ready)
@@ -6,21 +7,6 @@
   roles:
     - role: terraform
   tags: ["terraform", "cloud"]
-
-- name: Wait for nodes to be ready
-  hosts: all
-  gather_facts: False
-  user: ubuntu
-  tags: ["cloud"]
-  tasks:
-    #    - name: Wait during nodes boot
-    #      wait_for:
-    #        host: "{{ansible_ssh_host}}"
-    #        port: 22
-
-    - name: Wait for ssh
-      wait_for_connection:
-        timeout: 600
 
 # ----------------------------------------------------
 - name: Manage SSH known_hosts file on local host
@@ -72,3 +58,21 @@
         mode: "0600"
       with_fileglob:
         - "{{generated_kubeconf_file_prefix}}*{{ generated_kubeconf_file_suffix }}"
+#- name: Delete failed hosts
+#  #ansible.builtin.debug:
+#  #  msg: "Deleting index {{ idx }} ({{ item[0] }})"
+#  terraform:
+#    force_init: yes
+#    project_path: "{{ terraform_folder }}"
+#    state: "absent" # present / planned / absent
+#    targets: "openstack_compute_instance_v2.openstack_instances[{{ idx }}]"
+#  when: item[1] == True
+#  loop: "{{ cloud_create_result }}"
+#  loop_control:
+#    index_var: idx
+
+- name: Failed hosts
+  hosts: localhost
+  tasks:
+    - debug:
+        msg: "{{hostvars}}"

@@ -58,17 +58,20 @@
 
 - name: Generate list of failed/succeeded hosts (2/2)
   set_fact:
-    cloud_create_result: "{{ tmp_keys | zip(tmp_failed) }}"
+    cloud_create_result: "{{ tmp_keys | zip(tmp_failed) }}" # [['microk8s-host-0', False], .,,, ['microk8s-host-24', False]] , Boolean value for "failed"
 
-- name: Output cloud_create_result # [['microk8s-host-0', False], .,,, ['microk8s-host-24', False]] , Boolean value for "failed"
+- name: Set failed_hosts_dict # {'microk8s-host-0': False, 'microk8s-host-1': False, ... }
+  set_fact:
+    failed_hosts_dict: "{{ dict(cloud_create_result | json_query('[*][0]') | zip(cloud_create_result | json_query('[*][1]'))) }}"
+
+- name: Display failed_hosts_dict # {'microk8s-host-0': False, 'microk8s-host-1': False, ... }
   debug:
-    msg: "{{ cloud_create_result  }}"
+    msg: "{{ failed_hosts_dict  }}"
 
-- name: Add successful terraform hosts to dynamic inventory
-  ansible.builtin.add_host:
-    hostname: "{{ item.key }}"
-    ansible_ssh_host: "{{item.value.ansible_host}}"
-  #when: TODO
+- name: The following hosts have failed
+  debug:
+    msg: "{{ item  }}"
+  when: failed_hosts_dict.get(item.key) == True
   with_items: "{{terraform_inventory.all.hosts | dict2items}}"
   changed_when: False
 
@@ -84,3 +87,11 @@
   loop: "{{ cloud_create_result }}"
   loop_control:
     index_var: idx
+
+- name: Add successful terraform hosts to dynamic inventory
+  ansible.builtin.add_host:
+    hostname: "{{ item.key }}"
+    ansible_ssh_host: "{{item.value.ansible_host}}"
+  when: failed_hosts_dict.get(item.key, True) == False and not item.key in hostvars
+  loop: "{{terraform_inventory.all.hosts | dict2items}}"
+  changed_when: False

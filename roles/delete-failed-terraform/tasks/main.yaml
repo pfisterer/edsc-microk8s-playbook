@@ -1,0 +1,2 @@
+- debug:
+    msg: "{{ansible_play_hosts_all| difference(ansible_play_batch)}}"

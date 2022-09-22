@@ -1,9 +1,9 @@
 terraform_folder: "{{ playbook_dir }}/generated-terraform/"
 
 enable_password_login_for_user_ubuntu: false
-password_for_user_ubuntu: "changeme{{ 100 | random(seed=playbook_dir }}"
+password_for_user_ubuntu: "changeme{{ 100 | random(seed=playbook_dir) }}"
 
-instance_count: 25
+instance_count: 10
 microk8s_version: "1.25/stable"
 
 nodes_name: "microk8s-host"
