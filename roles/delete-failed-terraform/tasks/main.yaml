@@ -1,2 +1,18 @@
-- debug:
-    msg: "{{ansible_play_hosts_all| difference(ansible_play_batch)}}"
+- name: Delete failed hosts
+  debug:
+      msg: "Deleting host {{ item }} with index {{ idx }}"
+  when: "{{required_key not in hostvars[item] }}"
+  loop: "{{ hostvars.keys() }}"
+  loop_control:
+      index_var: idx
+
+- name: Delete failed hosts
+  terraform:
+      force_init: yes
+      project_path: "{{ terraform_folder }}"
+      state: "absent" # present / planned / absent
+      targets: "openstack_compute_instance_v2.openstack_instances[{{ idx }}]"
+  when: "{{required_key not in hostvars[item] }}"
+  loop: "{{ hostvars.keys() }}"
+  loop_control:
+      index_var: idx

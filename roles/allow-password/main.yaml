@@ -16,3 +16,11 @@
     name: ssh
     state: restarted
   when: enable_password_login_for_user_ubuntu == True
+
+# ----------------------------------------------------
+# Tag as success
+# ----------------------------------------------------
+
+- name: Set success fact
+  set_fact:
+    allow_password_success: True

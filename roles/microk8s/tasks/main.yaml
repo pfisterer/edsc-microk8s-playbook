@@ -181,3 +181,11 @@
   shell: kubectl completion bash > /etc/bash_completion.d/kubectl
   args:
     creates: /etc/bash_completion.d/kubectl
+
+# ----------------------------------------------------
+# Tag as success
+# ----------------------------------------------------
+
+- name: Set success fact
+  set_fact:
+    microk8s_success: True

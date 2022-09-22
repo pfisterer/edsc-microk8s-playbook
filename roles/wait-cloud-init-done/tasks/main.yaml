@@ -1,0 +1,13 @@
+- name: Wait for cloud-init to finish
+  raw: while ! test -f /var/lib/cloud/instance/boot-finished; do sleep 1; done
+  retries: 5
+  delay: 1
+  changed_when: False
+
+# ----------------------------------------------------
+# Tag as success
+# ----------------------------------------------------
+
+- name: Set success fact
+  set_fact:
+    cloud_init_success: True

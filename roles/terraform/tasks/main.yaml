@@ -41,57 +41,9 @@
   debug:
     msg: "{{ terraform_inventory  }}"
 
-- name: Wait for connectivity on port 22
-  ansible.builtin.wait_for:
-    port: 22
-    host: "{{ item.value.ansible_host }}"
-    search_regex: OpenSSH
-    timeout: 10
-  with_items: "{{terraform_inventory.all.hosts | dict2items}}"
-  register: wait_for_ssh_result
-  ignore_errors: True
-
-- name: Generate list of failed/succeeded hosts (1/2)
-  set_fact:
-    tmp_keys: "{{ wait_for_ssh_result | community.general.json_query('results[*]') | map(attribute='item') | map(attribute='key') }}"
-    tmp_failed: "{{ wait_for_ssh_result | community.general.json_query('results[*]') | map(attribute='failed') }}"
-
-- name: Generate list of failed/succeeded hosts (2/2)
-  set_fact:
-    cloud_create_result: "{{ tmp_keys | zip(tmp_failed) }}" # [['microk8s-host-0', False], .,,, ['microk8s-host-24', False]] , Boolean value for "failed"
-
-- name: Set failed_hosts_dict # {'microk8s-host-0': False, 'microk8s-host-1': False, ... }
-  set_fact:
-    failed_hosts_dict: "{{ dict(cloud_create_result | json_query('[*][0]') | zip(cloud_create_result | json_query('[*][1]'))) }}"
-
-- name: Display failed_hosts_dict # {'microk8s-host-0': False, 'microk8s-host-1': False, ... }
-  debug:
-    msg: "{{ failed_hosts_dict  }}"
-
-- name: The following hosts have failed
-  debug:
-    msg: "{{ item  }}"
-  when: failed_hosts_dict.get(item.key) == True
-  with_items: "{{terraform_inventory.all.hosts | dict2items}}"
-  changed_when: False
-
-- name: Delete failed hosts
-  #ansible.builtin.debug:
-  #  msg: "Deleting index {{ idx }} ({{ item[0] }})"
-  terraform:
-    force_init: yes
-    project_path: "{{ terraform_folder }}"
-    state: "absent" # present / planned / absent
-    targets: "openstack_compute_instance_v2.openstack_instances[{{ idx }}]"
-  when: item[1] == True
-  loop: "{{ cloud_create_result }}"
-  loop_control:
-    index_var: idx
-
-- name: Add successful terraform hosts to dynamic inventory
+- name: Add terraform hosts to dynamic inventory
   ansible.builtin.add_host:
     hostname: "{{ item.key }}"
     ansible_ssh_host: "{{item.value.ansible_host}}"
-  when: failed_hosts_dict.get(item.key, True) == False and not item.key in hostvars
   loop: "{{terraform_inventory.all.hosts | dict2items}}"
   changed_when: False

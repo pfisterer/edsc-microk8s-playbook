@@ -1,8 +1,8 @@
-- name: Remove existing entries for this machine
-  shell: "ssh-keygen -R {{ hostvars[item]['ansible_ssh_host'] }}"
-  ignore_errors: True
-  changed_when: False
-  with_items: "{{ groups.all }}"
+#- name: Remove existing entries for this machine
+#  shell: "ssh-keygen -R {{ hostvars[item]['ansible_ssh_host'] }}"
+#  ignore_errors: True
+#  changed_when: False
+#  with_items: "{{ groups.all }}"
 
 - name: For each host, scan for its ssh public key
   shell: "ssh-keyscan -trsa {{ hostvars[item]['ansible_ssh_host'] }}"

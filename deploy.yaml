@@ -7,6 +7,34 @@
   roles:
     - role: terraform
   tags: ["terraform", "cloud"]
+  post_tasks:
+    - name: Remove existing SSH key entries for the cloud instances machine
+      shell: "ssh-keygen -R {{ hostvars[item]['ansible_ssh_host'] }}"
+      ignore_errors: True
+      changed_when: False
+      with_items: "{{ groups.all }}"
+
+# ----------------------------------------------------
+#- name: Wait for nodes to be ready (port available)
+#  hosts: localhost
+#  tasks:
+#    - name: Wait during nodes boot (port available)
+#      wait_for:
+#        port: 22
+#       search_regex: OpenSSH
+#        host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+#        timeout: 180
+#      with_items: "{{ groups.all }}"
+#  ignore_errors: True
+
+- name: Wait during nodes boot (ssh available)
+  hosts: all
+  gather_facts: false
+  user: ubuntu
+  tasks:
+    - name: Wait during nodes boot (ssh available)
+      wait_for_connection:
+        timeout: 60
 
 # ----------------------------------------------------
 - name: Manage SSH known_hosts file on local host
@@ -22,12 +50,14 @@
   gather_facts: False
   user: ubuntu
   tags: ["cloud"]
-  tasks:
-    - name: Wait for cloud-init to finish
-      raw: while ! test -f /var/lib/cloud/instance/boot-finished; do sleep 1; done
-      retries: 5
-      delay: 1
-      changed_when: False
+  roles:
+    - role: wait-cloud-init-done
+
+- name: Delete resources for failed hosts
+  hosts: localhost
+  roles:
+    - role: delete-failed-terraform
+      vars: { "required_key": "cloud_init_success" }
 
 #-------------------------------------------------------
 - name: Configure password-based login for user ubuntu
@@ -38,6 +68,12 @@
   roles:
     - role: allow-password
 
+- name: Delete resources for failed hosts
+  hosts: localhost
+  roles:
+    - role: delete-failed-terraform
+      vars: { "required_key": "allow_password_success" }
+
 # ----------------------------------------------------
 - name: Install microk8s
   hosts: all
@@ -46,6 +82,12 @@
   become_user: root
   roles:
     - role: microk8s
+
+- name: Delete resources for failed hosts
+  hosts: localhost
+  roles:
+    - role: delete-failed-terraform
+      vars: { "required_key": "microk8s_success" }
 
 # ----------------------------------------------------
 - name: Fix permissions of kubeconf file(s)
@@ -58,21 +100,3 @@
         mode: "0600"
       with_fileglob:
         - "{{generated_kubeconf_file_prefix}}*{{ generated_kubeconf_file_suffix }}"
-#- name: Delete failed hosts
-#  #ansible.builtin.debug:
-#  #  msg: "Deleting index {{ idx }} ({{ item[0] }})"
-#  terraform:
-#    force_init: yes
-#    project_path: "{{ terraform_folder }}"
-#    state: "absent" # present / planned / absent
-#    targets: "openstack_compute_instance_v2.openstack_instances[{{ idx }}]"
-#  when: item[1] == True
-#  loop: "{{ cloud_create_result }}"
-#  loop_control:
-#    index_var: idx
-
-- name: Failed hosts
-  hosts: localhost
-  tasks:
-    - debug:
-        msg: "{{hostvars}}"
