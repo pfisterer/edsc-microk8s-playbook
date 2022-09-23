@@ -9,7 +9,7 @@ However, as OpenStack only allows [a single floating IP to be assigned to an ins
 Requires local installation of [Ansible](https://www.ansible.com/) and [Terraform](https://www.terraform.io/)
 
 1. Set required [environment variables](https://www.google.com/search?q=openstack+client+environment+variables) for OpenStack
-2. [Override any variable](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#defining-variables-at-runtime) requiring change (see `group_vars/all.yaml` for a reference)
+2. [Override any variable](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#defining-variables-at-runtime) requiring change (see [group_vars/all.yaml](group_vars/all.yaml) for a reference)
 3. Run `ansible-playbook deploy.yaml` (and supply your variables; see examples below)
 4. Set `KUBECONFIG` to the corresponding generated kubeconfig files and verify that `kubectl get nodes -o wide` works.
 
