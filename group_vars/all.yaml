@@ -1,21 +1,43 @@
-terraform_folder: "{{ playbook_dir }}/generated-terraform/"
-
-enable_password_login_for_user_ubuntu: false
-password_for_user_ubuntu: "changeme{{ 100 | random(seed=playbook_dir) }}"
-
+# Number of instances to create
 instance_count: 10
+
+# Version of the microk8s snap to use
 microk8s_version: "1.25/stable"
 
+# Prefix of the nodes in Openstack
 nodes_name: "microk8s-host"
+
+# The name of the image in OpenStack to use
 nodes_image: "Ubuntu Server 20.04 64bit"
+
+# The flavor in OpenStack to use
 nodes_flavor_name: "m1.large"
+
+# The name of the security group in OpenStack
 security_group: "default"
+
+# The name of the key to use in OpenStack
 key_name: "Dennis 2017"
+
+# The domain name for OpenStack to use
 domain_name: "default"
+
+# The ID of the project in OpenStack to deploy the machines in
 project_id: "124048b2da0c44e5aee6eca2d180de30"
+
+# The name of the network to attach the VM to
 network_name: "DHBW"
 
+# Prefix and suffix for the created kubeconf files
 generated_kubeconf_file_prefix: "{{ playbook_dir + '/generated-' }}"
 generated_kubeconf_file_suffix: "-kube.conf"
 
+# Should the generated VM allow for password-based login
+enable_password_login_for_user_ubuntu: false
+password_for_user_ubuntu: "changeme{{ 100 | random(seed=playbook_dir) }}"
+
+# The folder to generate the terraform files in
+terraform_folder: "{{ playbook_dir }}/generated-terraform/"
+
+# The SSH known hosts file to modify
 ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
