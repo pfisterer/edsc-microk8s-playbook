@@ -10,7 +10,7 @@ Requires local installation of [Ansible](https://www.ansible.com/) and [Terrafor
 
 1. Set required [environment variables](https://www.google.com/search?q=openstack+client+environment+variables) for OpenStack
 2. [Override any variable](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#defining-variables-at-runtime) requiring change (see `group_vars/all.yaml` for a reference)
-3. Run `ansible-playbook --extra-vars "@my-k8s.yaml" deploy.yaml`
+3. Run `ansible-playbook deploy.yaml` (and supply your variables; see examples below)
 4. Set `KUBECONFIG` to the corresponding generated kubeconfig files and verify that `kubectl get nodes -o wide` works.
 
 ## Example
