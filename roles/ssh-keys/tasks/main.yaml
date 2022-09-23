@@ -9,7 +9,6 @@
   register: ssh_known_host_results
   until: ssh_known_host_results.stdout != ''
   changed_when: False
-  retries: 75
   with_items: "{{ groups.all }}"
 
 - name: Add/update the public key in the '{{ ssh_known_hosts_file }}'

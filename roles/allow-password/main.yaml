@@ -5,17 +5,14 @@
     line: "PasswordAuthentication yes"
     owner: root
     group: root
-  when: enable_password_login_for_user_ubuntu == True
 
 - name: Change Password for user ubuntu
   user: name=ubuntu password="{{ password_for_user_ubuntu | password_hash('sha512', 'saltdfjalsdf') }}" update_password=always
-  when: enable_password_login_for_user_ubuntu == True
 
 - name: Restart sshd
   service:
     name: ssh
     state: restarted
-  when: enable_password_login_for_user_ubuntu == True
 
 # ----------------------------------------------------
 # Tag as success
