@@ -1,6 +1,6 @@
 # Create a VM in OpenStack with MicroK8S (using Ansible and Terraform)
 
-Creates a virtual machine in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed. It uses [MetalLB](https://metallb.universe.tf/) to provide load balancing.
+Creates a number of virtual machines in OpenStack with [MicroK8S](https://microk8s.io/) pre-installed. It uses [MetalLB](https://metallb.universe.tf/) to provide load balancing.
 
 However, as OpenStack only allows [a single floating IP to be assigned to an instance](https://ask.openstack.org/en/question/11901/how-to-configure-multiple-floating-ip-for-one-instance/), this project re-uses the hosts IP (which limits the ports available to Kubernetes).
 
