@@ -1,5 +1,5 @@
 # Number of instances to create
-instance_count: 10
+instance_count: 1
 
 # Version of the microk8s snap to use
 microk8s_version: "1.25/stable"
